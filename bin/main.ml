@@ -56,7 +56,7 @@ let what_to_run =
       match s with
       | "test" -> `Test
       | "test1" -> `Test1
-      | "test2" -> `Test1
+      | "test2" -> `Test2
       | "real" -> `Real
       | "real1" -> `Real1
       | "real2" -> `Real2
