@@ -26,6 +26,7 @@ let days =
     (module Day20 : Problem.Problem);
     (module Day21 : Problem.Problem);
     (module Day22 : Problem.Problem);
+    (module Day23 : Problem.Problem);
   ]
 
 let get_module day year =
