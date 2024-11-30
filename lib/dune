@@ -1,0 +1,20 @@
+(library
+ (name advent_of_code)
+ (libraries
+  async
+  core
+  core_unix
+  core_unix.command_unix
+  cohttp
+  cohttp-async
+  solutions)
+ (preprocess
+  (pps ppx_jane)))
+
+(rule
+ (deps
+  (:script make_solutions_list.py)
+  (glob_files solutions/*.ml))
+ (targets solutions_list.ml)
+ (action
+  (run python3 make_solutions_list.py)))

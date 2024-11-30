@@ -1,0 +1,6 @@
+(library
+ (name solutions)
+ (libraries core helpers zarith)
+ (preprocess
+  (pps ppx_jane))
+ (inline_tests))

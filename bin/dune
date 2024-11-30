@@ -1,0 +1,6 @@
+(executable
+ (public_name advent_of_code)
+ (name main)
+ (libraries advent_of_code async core)
+ (preprocess
+  (pps ppx_jane)))
