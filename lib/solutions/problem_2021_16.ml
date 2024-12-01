@@ -44,6 +44,32 @@ module Packet = struct
   }
   [@@deriving sexp]
 
+  let rec get_value t =
+    let get_value' l fn init =
+      List.fold l ~init ~f:(fun acc packet -> fn acc (get_value packet))
+    in
+    let get_value'' l fn =
+      match l with
+      | [ a; b ] -> fn (get_value a) (get_value b) |> Bool.to_int
+      | l -> raise_s [%message "list without two values" (l : t list)]
+    in
+
+    match (t.id_, t.payload) with
+    | 4, Literal n -> n
+    | 0, Operator l -> get_value' l Int.( + ) 0
+    | 1, Operator l -> get_value' l Int.( * ) 1
+    | 2, Operator l -> get_value' l Int.min Int.max_value
+    | 3, Operator l -> get_value' l Int.max Int.min_value
+    | 5, Operator l -> get_value'' l Int.( > )
+    | 6, Operator l -> get_value'' l Int.( < )
+    | 7, Operator l -> get_value'' l Int.equal
+    | id_, payload ->
+        raise_s
+          [%message
+            "bad id / payload combo"
+              ~id_:(id_ : int)
+              ~payload:(payload : payload)]
+
   let get_metadata s start =
     let version = to_int s start (start + 3) in
     let id_ = to_int s (start + 3) (start + 6) in
@@ -121,7 +147,9 @@ let part1 s =
   in
   Ok (Int.to_string (aux 0 packet))
 
-let part2 _ = Error (Error.of_string "Unimplemented")
+let part2 s =
+  let packet = Packet.of_bin (to_binary s) 0 in
+  Ok (Packet.get_value packet |> Int.to_string)
 
 let%expect_test "to_int" =
   let s = "110100" in

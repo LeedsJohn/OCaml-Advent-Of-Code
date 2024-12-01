@@ -12,6 +12,14 @@ bug-reports: "https://github.com/username/reponame/issues"
 depends: [
   "ocaml"
   "dune" {>= "3.16"}
+  "core"
+  "zarith"
+  "ocamlformat" {= "0.26.2"}
+  "ocaml-lsp-server"
+  "cohttp"
+  "cohttp-async"
+  "core_unix"
+  "async"
   "odoc" {with-doc}
 ]
 build: [
