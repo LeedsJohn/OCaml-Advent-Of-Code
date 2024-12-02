@@ -69,7 +69,7 @@ let part1 s =
       | _ -> acc)
   |> Int.to_string |> Ok
 
-let part2 s = 
+let part2 s =
   let l1, l2 =
     match String.split_lines s with
     | [ line1; line2 ] -> (line1, line2)
@@ -79,7 +79,6 @@ let part2 s =
   Map.fold cm1 ~init:Int.max_value ~f:(fun ~key:(x, y) ~data:(dir, steps) acc ->
       match Map.find cm2 (x, y) with
       | Some (dir2, steps2) ->
-          if not (dir_equal dir dir2) then Int.min acc (steps + steps2)
-          else acc
+          if not (dir_equal dir dir2) then Int.min acc (steps + steps2) else acc
       | _ -> acc)
   |> Int.to_string |> Ok
