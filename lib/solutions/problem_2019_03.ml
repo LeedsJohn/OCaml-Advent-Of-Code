@@ -2,13 +2,15 @@ open! Core
 open! Helpers
 
 let dir_of_string = function
-  | 'R' -> Coordinate.Right
+  | 'R' -> Coordinate.Direction4.Right
   | 'D' -> Down
   | 'L' -> Left
   | 'U' -> Up
   | _ -> raise_s [%message "bad"]
 
-let thingy = function Coordinate.Up | Down -> Coordinate.Up | _ -> Left
+let thingy = function
+  | Coordinate.Direction4.Up | Down -> Coordinate.Direction4.Up
+  | _ -> Left
 
 let make_coord_map s =
   let s = String.split s ~on:',' in
@@ -22,7 +24,7 @@ let make_coord_map s =
         ~f:(fun (pos, acc) _ ->
           let thing = dir_of_string (String.get dir 0) in
           let next_pos =
-            Coordinate.add pos (thing |> Coordinate.direction_to_offset)
+            Coordinate.add pos (thing |> Coordinate.Direction4.to_offset)
           in
           (next_pos, Map.set acc ~key:next_pos ~data:(thingy thing))))
   |> snd
@@ -40,7 +42,7 @@ let make_coord_map2 s =
           ~f:(fun (pos, acc, steps) _ ->
             let thing = dir_of_string (String.get dir 0) in
             let next_pos =
-              Coordinate.add pos (thing |> Coordinate.direction_to_offset)
+              Coordinate.add pos (thing |> Coordinate.Direction4.to_offset)
             in
             ( next_pos,
               Map.update acc next_pos ~f:(fun v ->
@@ -51,7 +53,7 @@ let make_coord_map2 s =
 
 let dir_equal d1 d2 =
   match (d1, d2) with
-  | Coordinate.Up, Coordinate.Left | Left, Up -> false
+  | Coordinate.Direction4.Up, Coordinate.Direction4.Left | Left, Up -> false
   | _, _ -> true
 
 let part1 s =

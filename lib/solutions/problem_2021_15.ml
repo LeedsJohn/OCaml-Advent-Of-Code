@@ -41,7 +41,7 @@ let dijkstra (board : Funny_board.t) =
       if Coordinate.equal coord board.goal_pos then weight
       else
         let pq =
-          List.fold (Coordinate.neighbors coord) ~init:pq ~f:(fun acc coord ->
+          Set.fold (Coordinate.neighbors coord) ~init:pq ~f:(fun acc coord ->
               match Funny_board.find board coord with
               | None -> acc
               | Some next ->
