@@ -1,3 +1,3 @@
 open! Core
 
-val take_int_exn : string -> int * string
+val take_int : ?default:int -> string -> int * string

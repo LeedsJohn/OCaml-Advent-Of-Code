@@ -4,9 +4,9 @@ open! Helpers
 let nums s =
   String.split_lines s
   |> List.map ~f:(fun line ->
-         let l, s = Parse.take_int_exn line in
+         let l, s = Parse.take_int line in
          let s = String.filter s ~f:Char.is_digit in
-         let r, _ = Parse.take_int_exn s in
+         let r, _ = Parse.take_int s in
          (l, r))
 
 let part1 s =

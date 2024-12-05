@@ -10,7 +10,7 @@ module Snailfish = struct
     (Pair (left, right), String.drop_prefix s 1)
 
   and get_num s =
-    let n, s = Parse.take_int_exn s in
+    let n, s = Parse.take_int s in
     (Num n, s)
 
   and of_string' s =
@@ -96,7 +96,7 @@ module Snailfish = struct
     in
     let s = String.slice s 0 ep ^ "0" ^ String.slice s (end_ep + 1) 0 in
     let add_num s start john =
-      let num, _ = Parse.take_int_exn (String.slice s start 0) in
+      let num, _ = Parse.take_int (String.slice s start 0) in
       let l = String.length (Int.to_string num) in
       String.slice s 0 start
       ^ Int.to_string (num + john)

@@ -9,10 +9,10 @@ module Box = struct
 
   let of_string s =
     let s = String.drop_prefix s 15 in
-    let min_x, s = Parse.take_int_exn s in
-    let max_x, s = Parse.take_int_exn (String.drop_prefix s 2) in
-    let min_y, s = Parse.take_int_exn (String.drop_prefix s 4) in
-    let max_y, _ = Parse.take_int_exn (String.drop_prefix s 2) in
+    let min_x, s = Parse.take_int s in
+    let max_x, s = Parse.take_int (String.drop_prefix s 2) in
+    let min_y, s = Parse.take_int (String.drop_prefix s 4) in
+    let max_y, _ = Parse.take_int (String.drop_prefix s 2) in
     { min_x; max_x; min_y; max_y }
 end
 

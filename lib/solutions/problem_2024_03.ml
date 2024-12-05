@@ -4,7 +4,7 @@ open! Helpers
 (* too lazy to install a regex library but that would make this cleaner i think *)
 let get_numbers_in_parens s =
   let n1, s =
-    if Char.is_digit (String.get s 0) then Parse.take_int_exn s else (0, s)
+    if Char.is_digit (String.get s 0) then Parse.take_int s else (0, s)
   in
   let n1, s =
     if String.length s > 0 && Char.equal (String.get s 0) ',' then
@@ -12,7 +12,7 @@ let get_numbers_in_parens s =
     else (0, s)
   in
   let n2, s =
-    if Char.is_digit (String.get s 0) then Parse.take_int_exn s else (0, s)
+    if Char.is_digit (String.get s 0) then Parse.take_int s else (0, s)
   in
   let n2 =
     if String.length s > 0 && Char.equal (String.get s 0) ')' then n2 else 0
