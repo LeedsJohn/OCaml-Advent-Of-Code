@@ -21,14 +21,14 @@ let to_string t =
   let min_x, min_y = min_coordinates t in
   let max_x, max_y = max_coordinates t in
   List.fold
-    (List.range min_x (max_x + 1))
+    (List.range min_y (max_y + 1))
     ~init:[]
-    ~f:(fun acc x ->
+    ~f:(fun acc y ->
       let line =
         List.fold
-          (List.range min_y (max_y + 1))
+          (List.range min_x (max_x + 1))
           ~init:[]
-          ~f:(fun acc y ->
+          ~f:(fun acc x ->
             let c = Map.find t (x, y) |> Option.value ~default:' ' in
             c :: acc)
       in

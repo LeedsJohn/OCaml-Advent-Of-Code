@@ -5,22 +5,49 @@ module Game = struct
   type t = { alg : string; board : Set.M(Coordinate).t }
 
   let bin_to_dec s =
-      String.foldi (String.rev s) ~init:0 ~f:(fun i acc c ->
-          if Char.(c = '#') then acc + (Int.pow 2 i) else acc
-      )
+    print_endline s;
+    String.foldi (String.rev s) ~init:0 ~f:(fun i acc c ->
+        if Char.(c = '#') then acc + Int.pow 2 i else acc)
 
   let get { board; _ } pos = if Set.mem board pos then '#' else '.'
 
-  let get_alg_index t pos =
-    List.map (List.range (-1) 2) ~f:(fun dy ->
-        List.map (List.range (-1) 2) ~f:(fun dx ->
-            let p = Coordinate.add pos (dx, dy) in
-            get t p))
+  let get_alg_index t (x, y) =
+    List.map
+      (List.range (y - 1) (y + 2))
+      ~f:(fun y ->
+        List.map
+          (List.range (x - 1) (x + 2))
+          ~f:(fun x ->
+            print_s [%sexp ((x, y, get t (x, y)) : int * int * char)];
+            get t (x, y)))
     |> List.join |> String.of_list |> bin_to_dec
 
+  let min_coordinates { board; _ } =
+    Set.fold board ~init:(Int.max_value, Int.max_value)
+      ~f:(fun (x, y) (x', y') -> (Int.min x x', Int.min y y'))
+
+  let max_coordinates { board; _ } =
+    Set.fold board ~init:(Int.min_value, Int.min_value)
+      ~f:(fun (x, y) (x', y') -> (Int.max x x', Int.max y y'))
+
+  let print_board t =
+    let min_x, min_y = min_coordinates t in
+    let max_x, max_y = max_coordinates t in
+    print_s [%sexp ((min_x, min_y) : int * int)];
+    print_s [%sexp ((max_x, max_y) : int * int)];
+    List.iter
+      (List.range min_y (max_y + 1))
+      ~f:(fun y ->
+        List.map (List.range min_x (max_x + 1)) ~f:(fun x -> get t (x, y))
+        |> String.of_list |> print_endline)
+
   let step ({ alg; _ } as t) =
+    let min_x, min_y = min_coordinates t in
+    let max_x, max_y = max_coordinates t in
     let new_board =
-      List.cartesian_product (List.range (-100) 100) (List.range (-100) 100)
+      List.cartesian_product
+        (List.range (min_x - 3) (max_x + 4))
+        (List.range (min_y - 3) (max_y + 4))
       |> List.fold
            ~init:(Set.empty (module Coordinate))
            ~f:(fun acc pos ->
@@ -43,7 +70,10 @@ module Game = struct
 end
 
 let part1 s =
-  let game = Game.of_string s |> Game.step |> Game.step in
+  let game = Game.of_string s |> Game.step in
+  (* let game = Game.of_string s in *)
+  Game.print_board game;
+  (* print_s [%sexp (Game.get_alg_index game (2, 3) : int)]; *)
   Set.length game.board |> Int.to_string |> Ok
 
 let part2 _ = Error (Error.of_string "Unimplemented")
