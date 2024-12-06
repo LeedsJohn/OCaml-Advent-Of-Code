@@ -78,7 +78,10 @@ let rec stuff p1_pos p1_score p2_pos p2_score turn =
     let res =
       Map.fold score_counts ~init:(0, 0) ~f:(fun ~key:moves ~data:count acc ->
           let p1_pos', p1_score', p2_pos', p2_score' = get_new_stuff moves in
-          Coordinate.add acc (Coordinate.scale (stuff p1_pos' p1_score' p2_pos' p2_score' (not turn)) count))
+          Coordinate.add acc
+            (Coordinate.scale
+               (stuff p1_pos' p1_score' p2_pos' p2_score' (not turn))
+               count))
     in
     Hashtbl.add_exn memo ~key:k ~data:res;
     res
@@ -93,7 +96,6 @@ let part1 s =
   aux game |> Int.to_string |> Ok
 
 let part2 s =
-    let ({p1 = p1_pos, _; p2 = p2_pos, _; _} : Game.t) = Game.of_string s in
-    let x, y = stuff p1_pos 0 p2_pos 0 true in
-    Int.max x y |> Int.to_string |> Ok
-
+  let ({ p1 = p1_pos, _; p2 = p2_pos, _; _ } : Game.t) = Game.of_string s in
+  let x, y = stuff p1_pos 0 p2_pos 0 true in
+  Int.max x y |> Int.to_string |> Ok

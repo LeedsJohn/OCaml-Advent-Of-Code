@@ -16,6 +16,9 @@ type coordinate = t
 let neighbors (x, y) =
   Set.of_list (module T) [ (x + 1, y); (x - 1, y); (x, y + 1); (x, y - 1) ]
 
+let rotate_right (x, y) = (-y, x)
+let rotate_left t = rotate_right t |> rotate_right |> rotate_right
+let turn_around t = rotate_right t |> rotate_right
 let offsets = neighbors (0, 0)
 
 let neighbors8 (x, y) =

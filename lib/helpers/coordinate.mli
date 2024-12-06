@@ -18,6 +18,9 @@ include Comparator.S with type t := t
 val add : t -> t -> t
 val scale : t -> int -> t
 val neighbors : t -> Set.M(T).t
+val rotate_right : t -> t
+val rotate_left : t -> t
+val turn_around : t -> t
 val offsets : Set.M(T).t
 val neighbors8 : t -> Set.M(T).t
 val offsets8 : Set.M(T).t
