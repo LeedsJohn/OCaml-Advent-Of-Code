@@ -4,15 +4,8 @@ open! Helpers
 let lines s =
   String.split_lines s
   |> List.map ~f:(fun line ->
-         let goal, s = Parse.take_int line in
-         let rec get_nums acc s =
-           if String.equal s "" then List.rev acc
-           else if Char.is_digit (String.get s 0) then
-             let num, s = Parse.take_int s in
-             get_nums (num :: acc) (String.drop_prefix s 1)
-           else get_nums acc (String.drop_prefix s 1)
-         in
-         (goal, get_nums [] s))
+         let nums = Parse.line_numbers line in
+         (List.hd_exn nums, List.tl_exn nums))
 
 let solve goal nums fns =
   let rec aux cur = function

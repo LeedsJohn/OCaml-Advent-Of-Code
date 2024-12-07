@@ -18,3 +18,13 @@ let take_int ?(default = 0) s =
     else if negative then (-1 * Int.of_string num_str, new_s)
     else (Int.of_string num_str, new_s)
   else (default, s)
+
+let line_numbers s =
+  let rec aux acc s =
+    if String.equal s "" then List.rev acc
+    else if Char.is_digit (String.get s 0) then
+      let num, s = take_int s in
+      aux (num :: acc) (String.drop_prefix s 1)
+    else aux acc (String.drop_prefix s 1)
+  in
+  aux [] s
