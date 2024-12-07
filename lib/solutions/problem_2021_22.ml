@@ -1,6 +1,6 @@
 open! Core
 
-module Amphipod = struct
+(* module Amphipod = struct
   type t = No | A | B | C | D [@@deriving equal]
 
   let to_int = function No -> 0 | A -> 1 | B -> 2 | C -> 3 | D -> 4
@@ -129,7 +129,7 @@ end
 module State = struct
     type t = int * int
     let compare (energy1, _) (energy2, _) = Int.compare energy1 energy2
-end
+end *)
 
 let part1 _ = Error (Error.of_string "Unimplemented")
 
