@@ -1,5 +1,11 @@
 open! Core
 
+(* this is way slower than it should be.
+   I know I made some sacrifices to keep it functional but it's making a much bigger
+   difference than I expected. My gut feeling is this should take on the order of
+   tenths of a second but it's taking like 7 seconds.
+   It might be fun to come back and rewrite this more nicely *)
+
 module Entry = struct
   type t = Empty of int | Full of int * int [@@deriving sexp]
 end
@@ -41,6 +47,12 @@ module Entry_list = struct
     in
     aux [] 0 0 |> fix_stuff
 
+  let int_list t =
+    List.map t ~f:(function
+      | Entry.Empty n -> List.init n ~f:(fun _ -> None)
+      | Full (count, id) -> List.init count ~f:(fun _ -> Some id))
+    |> List.join
+
   let pop_tail t : Entry.t * t = (List.last_exn t, List.drop_last_exn t)
 
   let shuffle_last_block t =
@@ -65,28 +77,23 @@ module Entry_list = struct
 
   let shuffle_last_block' t =
     let count, id, t =
-      List.fold t ~init:(-1, -1, []) ~f:(fun (count, id, acc) t ->
+      List.fold (List.rev t) ~init:(-1, -1, []) ~f:(fun (count, id, acc) t ->
           match t with
           | Entry.Full (c, i) as e ->
-              if id <= 0 && i > 0 then (c, i, Entry.Empty c :: acc)
+              if id = -1 && i >= 0 then (c, i, Entry.Empty c :: acc)
               else (count, id, e :: acc)
           | e -> (count, id, e :: acc))
     in
-    let t = List.rev t in
     let rec aux acc added = function
       | [] -> List.rev acc
       | (Entry.Full _ as hd) :: tl -> aux (hd :: acc) added tl
-      | Empty n :: tl ->
-          if (not added) && count > n then aux (Full (n, id) :: acc) true tl
-          else aux (Empty (n - count) :: Full (count, id) :: acc) added tl
+      | (Empty n as hd) :: tl ->
+          if (not added) && n >= count then
+            aux (Empty (n - count) :: Full (count, -id) :: acc) true tl
+          else aux (hd :: acc) added tl
     in
-    aux [] false t |> fix_stuff
-
-  let int_list t =
-    List.map t ~f:(function
-      | Entry.Empty n -> List.init n ~f:(fun _ -> None)
-      | Full (count, id) -> List.init count ~f:(fun _ -> Some id))
-    |> List.join
+    let t = aux [] false t in
+    fix_stuff t
 
   let checksum t =
     List.foldi (int_list t) ~init:0 ~f:(fun i acc n ->
@@ -96,7 +103,7 @@ module Entry_list = struct
     List.exists (fix_stuff t) ~f:(function Empty _ -> true | Full _ -> false)
 
   let part2done t =
-    List.for_all t ~f:(function Entry.Full (_, id) -> id <= 0 | _ -> false)
+    List.for_all t ~f:(function Entry.Full (_, id) -> id <= 0 | _ -> true)
 end
 
 let part1 s =
@@ -110,8 +117,6 @@ let part1 s =
 let part2 s =
   let t = Entry_list.of_string s in
   let rec aux t =
-    print_s [%sexp (Entry_list.int_list t : int option list)];
-    print_endline "";
     if Entry_list.part2done t then
       Entry_list.checksum
         (List.map t ~f:(function
