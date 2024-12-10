@@ -16,6 +16,8 @@ type coordinate = t
 include Comparator.S with type t := t
 
 val add : t -> t -> t
+val sub : t -> t -> t
+val scale_down : t -> t
 val scale : t -> int -> t
 val neighbors : t -> Set.M(T).t
 val rotate_right : t -> t
