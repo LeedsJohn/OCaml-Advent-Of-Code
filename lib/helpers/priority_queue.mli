@@ -3,7 +3,7 @@ open! Core
 module Make (Elem : sig
   type t [@@deriving compare, sexp_of]
 end) : sig
-  type t
+  type t [@@deriving sexp_of]
 
   val empty : t
   val singleton : Elem.t -> t

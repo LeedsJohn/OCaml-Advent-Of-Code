@@ -4,7 +4,7 @@ module Make (Elem : sig
   type t [@@deriving compare, sexp_of]
 end) =
 struct
-  type t = Elem.t list
+  type t = Elem.t list [@@deriving sexp_of]
 
   let empty = []
   let singleton e = [ e ]
