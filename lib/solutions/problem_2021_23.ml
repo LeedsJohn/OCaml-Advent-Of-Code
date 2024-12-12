@@ -85,13 +85,13 @@ module Burrow = struct
     List.fold
       [
         (Pos.Room (0, false), Amphipod.A);
-        (Pos.Room (0, false), A);
+        (Pos.Room (0, true), A);
         (Pos.Room (1, false), B);
-        (Pos.Room (1, false), B);
+        (Pos.Room (1, true), B);
         (Pos.Room (2, false), C);
-        (Pos.Room (2, false), C);
+        (Pos.Room (2, true), C);
         (Pos.Room (3, false), D);
-        (Pos.Room (3, false), D);
+        (Pos.Room (3, true), D);
       ]
       ~init:0
       ~f:(fun acc (pos, amph) -> set acc pos amph)
@@ -112,6 +112,14 @@ module Burrow = struct
     let s = String.split_lines s |> List.to_array in
     List.fold positions ~init:0 ~f:(fun acc (col, row, pos) ->
         set acc pos (Amphipod.of_char_exn (String.get s.(row) col)))
+
+  let rec is_pos_solved t pos =
+    let a = get t pos in
+    match pos with
+    | Pos.Room (n, true) -> Amphipod.goal_room a = n
+    | Room (n, false) ->
+        Amphipod.goal_room a = n && is_pos_solved t (Pos.Room (n, true))
+    | _ -> false
 
   let to_string t =
     let hallway =
@@ -159,30 +167,46 @@ module Burrow = struct
         n = Amphipod.goal_room amph
         &&
         let deep_amph = get t (Room (n, true)) in
-        Amphipod.equal amph deep_amph && (Amphipod.goal_room deep_amph = n)
+        Amphipod.equal amph deep_amph && Amphipod.goal_room deep_amph = n
     | _ -> false
 
-  let valid_end_pos_from_room end_pos =
+  let valid_end_pos_from_room t amph end_pos =
     match end_pos with
-    | Pos.Room _ -> false
+    | Pos.Room (n, buried) ->
+        if Amphipod.goal_room amph <> n then false
+        else if buried then true
+        else is_pos_solved t (Pos.Room (n, true))
     | Hallway n -> List.for_all [ 2; 4; 6; 8 ] ~f:(fun n2 -> n <> n2)
 
   let places_can_go t pos =
-    all_places_can_go t pos
-    |> List.filter ~f:(fun (end_pos, _steps) ->
-           let amph = get t pos in
-           match pos with
-           | Room _ -> valid_end_pos_from_room end_pos
-           | Hallway _ -> valid_end_pos_from_hallway t amph end_pos)
+    if is_pos_solved t pos then []
+    else
+      let places = all_places_can_go t pos in
+      List.filter places ~f:(fun (end_pos, _steps) ->
+          let amph = get t pos in
+          match pos with
+          | Room _ -> valid_end_pos_from_room t amph end_pos
+          | Hallway _ -> valid_end_pos_from_hallway t amph end_pos)
 
   let all_moves (t : t) : (Pos.t * Pos.t * int) list =
-    List.map Pos.all ~f:(fun start_pos ->
-        match get t start_pos with
-        | No -> []
-        | _ ->
-            List.map (places_can_go t start_pos) ~f:(fun (end_pos, steps) ->
-                (start_pos, end_pos, steps)))
-    |> List.join
+    let moves =
+      List.map Pos.all ~f:(fun start_pos ->
+          match get t start_pos with
+          | No -> []
+          | _ ->
+              List.map (places_can_go t start_pos) ~f:(fun (end_pos, steps) ->
+                  (start_pos, end_pos, steps)))
+      |> List.join
+    in
+    match
+      List.find moves ~f:(fun (start_pos, end_pos, _steps) ->
+          let amph = get t start_pos in
+          match end_pos with
+          | Pos.Room (n, _) -> n = Amphipod.goal_room amph
+          | _ -> false)
+    with
+    | Some move -> [ move ]
+    | None -> moves
 
   let apply_move t start_pos end_pos =
     let amph = get t start_pos in
@@ -203,15 +227,19 @@ end
 module Pq = Priority_queue.Make (State)
 
 let djikstra t =
+  let visited = Hash_set.create (module Int) in
   let rec aux pq =
     let (energy, pos), pq = Pq.get_exn pq in
+    Hash_set.add visited pos;
     if pos = Burrow.goal_state then energy
     else
       let pq =
         List.fold (Burrow.all_moves pos) ~init:pq
           ~f:(fun acc (start_, end_, steps) ->
             let new_state = Burrow.apply_move pos start_ end_ in
-            Pq.add acc (energy + Burrow.move_cost pos start_ steps, new_state))
+            if Hash_set.mem visited new_state then acc
+            else
+              Pq.add acc (energy + Burrow.move_cost pos start_ steps, new_state))
       in
       aux pq
   in
@@ -258,7 +286,36 @@ let%expect_test "places can go" =
   [%expect {| 28 |}];
   let burrow = Burrow.apply_move burrow (Pos.Room (0, false)) (Pos.Hallway 0) in
   print_endline (Burrow.to_string burrow);
-  [%expect {||}];
+  [%expect {|
+    B..........
+      . C B D
+      A D C A
+    |}];
   print_s [%sexp (List.length (Burrow.all_moves burrow) : int)];
   [%expect {| 18 |}];
+  print_s
+    [%sexp
+      (Burrow.places_can_go burrow (Pos.Room (0, true)) : (Pos.t * int) list)];
+  [%expect {| () |}];
+  ()
+
+let%expect_test "eliminate all moves except 1" =
+  let t = Burrow.of_string test_string in
+  let t = Burrow.set t (Pos.Room (0, false)) Amphipod.No in
+  let t = Burrow.set t (Pos.Hallway 0) Amphipod.A in
+  print_s [%sexp (Burrow.all_moves t : (Pos.t * Pos.t * int) list)];
+  [%expect {| (((Hallway 0) (Room 0 false) 3)) |}];
+  let t = Burrow.set t (Pos.Room (0, true)) Amphipod.No in
+  print_s [%sexp (Burrow.all_moves t : (Pos.t * Pos.t * int) list)];
+  [%expect {| (((Hallway 0) (Room 0 true) 4)) |}];
+  ()
+
+let%expect_test "simple solve" =
+  let t = Burrow.goal_state in
+  let t = Burrow.set t (Pos.Room (3, false)) Amphipod.No in
+  let t = Burrow.set t (Pos.Hallway 0) Amphipod.D in
+  print_s [%sexp (Burrow.all_moves t : (Pos.t * Pos.t * int) list)];
+  [%expect {| (((Hallway 0) (Room 3 false) 9)) |}];
+  print_s [%sexp (djikstra t : int)];
+  [%expect {| 9000 |}];
   ()
