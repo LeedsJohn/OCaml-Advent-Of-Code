@@ -1,5 +1,6 @@
 open! Core
 open! Helpers
+(* no complicated cases where both buttons have the same slope so that's nice *)
 
 let of_string s =
   let get_coord_from_line line =
@@ -24,22 +25,24 @@ let of_string2 s =
   |> List.map ~f:(fun (a, b, (goal_x, goal_y)) ->
          (a, b, (goal_x + 10000000000000, goal_y + 10000000000000)))
 
-let solve a ((xb, _) as b) ((goal_x, goal_y) as goal) move_limit =
-  let rec aux (x, y) moves =
-    if x > goal_x || y > goal_y || moves > move_limit then Int.max_value
-    else
-      let steps_to_end = (goal_x - x) / xb in
-      let new_pos = Coordinate.add (x, y) (Coordinate.scale b steps_to_end) in
-      if
-        Coordinate.equal new_pos goal
-        && moves <= move_limit && steps_to_end <= move_limit
-      then
-        Int.min
-          ((moves * 3) + steps_to_end)
-          (aux (Coordinate.add (x, y) a) (moves + 1))
-      else aux (Coordinate.add (x, y) a) (moves + 1)
+(* ax + by = e
+   cx + dy = f
+
+   acx + bcy = ce
+   acx + ady = af
+
+   bcy - ady = ce - af
+   y = (ce - af)/(bc - ad) *)
+let solve ((a, c) as i) ((b, d) as j) ((e, f) as goal) max_moves =
+  let y = ((c * e) - (a * f)) / ((b * c) - (a * d)) in
+  let x =
+    let t, _ = Coordinate.sub goal (Coordinate.scale j y) in
+    t / a
   in
-  aux (0, 0) 0
+  let added = Coordinate.(add (scale i x) (scale j y)) in
+  if Coordinate.equal added goal && y < max_moves && x < max_moves then
+    (x * 3) + y
+  else Int.max_value
 
 let part1 s =
   List.sum
@@ -55,7 +58,6 @@ let part2 s =
     (module Int)
     (of_string2 s)
     ~f:(fun (a, b, goal) ->
-        print_endline "yeah";
       let res = solve a b goal Int.max_value in
       if res <> Int.max_value then res else 0)
   |> Int.to_string |> Ok
