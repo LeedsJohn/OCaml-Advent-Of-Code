@@ -24,10 +24,13 @@ let step_robot ((x, y), (dx, dy)) =
 
 let step_robots robots = List.map robots ~f:step_robot
 
-let contains_tree robots =
-  let robots = List.map robots ~f:fst |> Set.of_list (module Coordinate) in
+let contains_tree robo =
+  let robots = List.map robo ~f:fst |> Set.of_list (module Coordinate) in
+  (* solution 1 : look for a horizontal line *)
   Set.exists robots ~f:(fun (x, y) ->
       List.for_all (List.range 1 10) ~f:(fun dx -> Set.mem robots (x + dx, y)))
+(* solution 2 : look for a layout where all robots are on unique points *)
+(* Set.length robots = List.length robo *)
 
 let count_quadrant robots min_x max_x min_y max_y =
   List.count robots ~f:(fun ((x, y), _) ->
