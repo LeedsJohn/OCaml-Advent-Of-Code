@@ -22,7 +22,8 @@ let take_int ?(default = 0) s =
 let line_numbers s =
   let rec aux acc s =
     if String.equal s "" then List.rev acc
-    else if Char.is_digit (String.get s 0) then
+    else if Char.is_digit (String.get s 0) || Char.equal '-' (String.get s 0)
+    then
       let num, s = take_int s in
       aux (num :: acc) (String.drop_prefix s 1)
     else aux acc (String.drop_prefix s 1)
