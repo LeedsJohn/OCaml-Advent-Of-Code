@@ -4,6 +4,7 @@ open! Helpers
 module Garden = struct
   type t = { board : char Board.t; scale : int }
 
+  [@@@warning "-32"]
   let of_string s scale =
     let s =
       String.split_lines s
@@ -19,6 +20,11 @@ module Garden = struct
     in
     let board = Board.of_string s in
     { board; scale }
+
+  let to_string { board; _ } group =
+    Map.mapi board ~f:(fun ~key:pos ~data:c ->
+        if Set.mem group pos then '.' else c)
+    |> Board.to_string
 
   let get { board; _ } (x, y) = Map.find board (x, y)
 
@@ -53,25 +59,27 @@ module Garden = struct
     (get_group t start_pos |> Set.length) / (scale * scale)
 
   let is_corner group pos =
-    let n =
-      Set.count (Coordinate.neighbors8 pos) ~f:(fun pos2 ->
-          (not (Set.mem group pos)) && Set.mem group pos2)
+    let out_corner =
+      let neighbors =
+        Set.filter (Coordinate.neighbors pos) ~f:(fun pos -> Set.mem group pos)
+      in
+      Set.mem group pos
+      && Set.length neighbors = 2
+      && not
+           (Coordinate.equal
+              (Set.fold neighbors ~init:(0, 0) ~f:Coordinate.add)
+              (0, 0))
     in
-    n = 5 || n = 1
+    let in_corner =
+      Set.count (Coordinate.neighbors8 pos) ~f:(fun pos -> Set.mem group pos)
+      = 7
+      && Set.mem group pos
+    in
+    out_corner || in_corner
 
   let count_corners t start_pos =
-    (* this is hacky but idk why i couldn't get a good solution to compile :( *)
     let group = get_group t start_pos in
-    let visited = Hash_set.create (module Coordinate) in
-    Set.sum
-      (module Int)
-      group
-      ~f:(fun pos ->
-        Set.count (Coordinate.neighbors8 pos) ~f:(fun pos2 ->
-            if not (Hash_set.mem visited pos2) then (
-              Hash_set.add visited pos2;
-              is_corner group pos2)
-            else false))
+    Set.count group ~f:(fun pos -> is_corner group pos)
 end
 
 let part1 s =
