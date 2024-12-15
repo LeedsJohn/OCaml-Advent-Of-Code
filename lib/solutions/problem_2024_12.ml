@@ -67,10 +67,10 @@ module Garden = struct
       (module Int)
       group
       ~f:(fun pos ->
-        Set.count (Coordinate.neighbors8 pos) ~f:(fun pos ->
-            if not (Hash_set.mem visited pos) then (
-              Hash_set.add visited pos;
-              is_corner group pos)
+        Set.count (Coordinate.neighbors8 pos) ~f:(fun pos2 ->
+            if not (Hash_set.mem visited pos2) then (
+              Hash_set.add visited pos2;
+              is_corner group pos2)
             else false))
 end
 
