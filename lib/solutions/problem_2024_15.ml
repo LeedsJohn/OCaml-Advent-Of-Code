@@ -17,7 +17,9 @@ module Warehouse = struct
     in
     { board; pos }
 
-  let _to_string { board; pos } =
+  [@@@warning "-32"]
+
+  let to_string { board; pos } =
     Map.mapi board ~f:(fun ~key ~data ->
         if Coordinate.equal key pos then '@'
         else match data with Wall -> '#' | Empty -> '.' | Box -> 'O')
