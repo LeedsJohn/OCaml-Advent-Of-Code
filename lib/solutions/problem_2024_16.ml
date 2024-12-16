@@ -52,33 +52,6 @@ let solve board start_pos end_pos =
   djikstra pq
 
 let solve2 board start_pos end_pos =
-  let res = Hash_set.create (module Coordinate) in
-  let best_score = solve board start_pos end_pos in
-  let rec aux cur_path =
-    let pos, dir, score = List.hd_exn cur_path in
-    if Coordinate.equal pos end_pos && score = best_score then
-      List.iter cur_path ~f:(fun (a, _, _) -> Hash_set.add res a)
-    else if score >= best_score then ()
-    else
-      let next_positions =
-        [
-          (Coordinate.add pos dir, dir, score + 1);
-          (pos, Coordinate.rotate_left dir, score + 1000);
-          (pos, Coordinate.rotate_right dir, score + 1000);
-        ]
-      in
-      List.iteri next_positions ~f:(fun i ((pos, dir, _) as state) ->
-          if
-            Char.equal (Map.find_exn board pos) '#'
-            || i > 0
-               && Char.equal (Map.find_exn board (Coordinate.add pos dir)) '#'
-          then ()
-          else aux (state :: cur_path))
-  in
-  aux [ (start_pos, (1, 0), 0) ];
-  Hash_set.length res
-
-let solve3 board start_pos end_pos =
   let rec djikstra pq memo =
     if Pq.is_empty pq then ()
     else
@@ -133,4 +106,4 @@ let part1 s =
 
 let part2 s =
   let board = of_string s in
-  solve3 board (start_pos board) (end_pos board) |> Int.to_string |> Ok
+  solve2 board (start_pos board) (end_pos board) |> Int.to_string |> Ok
