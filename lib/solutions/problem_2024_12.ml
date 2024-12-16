@@ -5,6 +5,7 @@ module Garden = struct
   type t = { board : char Board.t; scale : int }
 
   [@@@warning "-32"]
+
   let of_string s scale =
     let s =
       String.split_lines s
@@ -77,9 +78,7 @@ module Garden = struct
     in
     out_corner || in_corner
 
-  let count_corners t start_pos =
-    let group = get_group t start_pos in
-    Set.count group ~f:(fun pos -> is_corner group pos)
+  let count_corners group = Set.count group ~f:(fun pos -> is_corner group pos)
 end
 
 let part1 s =
@@ -106,6 +105,5 @@ let part2 s =
       | false ->
           let group = Garden.get_group garden pos in
           ( Set.union visited group,
-            acc + (Garden.get_area garden pos * Garden.count_corners garden pos)
-          ))
+            acc + (Garden.get_area garden pos * Garden.count_corners group) ))
   |> snd |> Int.to_string |> Ok
