@@ -1,14 +1,15 @@
 open! Core
 open! Async
 
-let get_module ~day ~year =
-  let _, _, m =
-    List.find_exn Solutions_list.all ~f:(fun (d, y, _) -> d = day && y = year)
+let get_module ~day ~year ~tag =
+  let _, _, _, m =
+    List.find_exn Solutions_list.all ~f:(fun (d, y, t, _) ->
+        d = day && y = year && String.equal tag t)
   in
   m
 
-let run ~day ~year ~(options : Options.t) =
-  let s = get_module ~day ~year in
+let run ~day ~year ~tag ~(options : Options.t) =
+  let s = get_module ~day ~year ~tag in
   let module S = (val s : Solution.T) in
   let test =
     match options.run_type with Test -> true | Real | Submit -> false
