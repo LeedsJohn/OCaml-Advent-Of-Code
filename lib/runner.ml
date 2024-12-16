@@ -14,9 +14,13 @@ let run ~day ~year ~(options : Options.t) =
     match options.run_type with Test -> true | Real | Submit -> false
   in
   let%bind input = Input_handler.get_input ~day ~year ~test in
+  let start_time = Time_float_unix.now () in
   let answer =
     match options.part with 1 -> S.part1 input | _ -> S.part2 input
   in
+  let end_time = Time_float_unix.now () in
+  print_endline ("Time: " ^ (Time_float_unix.diff end_time start_time
+    |> Time_float_unix.Span.to_string_hum));
   print_s [%sexp (answer : string Or_error.t)];
   match (options.run_type, answer) with
   | Submit, Ok answer ->
