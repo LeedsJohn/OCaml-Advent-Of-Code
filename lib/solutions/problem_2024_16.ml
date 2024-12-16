@@ -23,87 +23,75 @@ end
 
 module Pq = Priority_queue.Make (Stuff)
 
-let solve board start_pos end_pos =
-  let visited = Hash_set.create (module Cord2) in
-  Hash_set.add visited (start_pos, (1, 0));
-  let pq = Pq.singleton (start_pos, (1, 0), 0) in
-  let rec djikstra pq =
-    let (pos, dir, score), pq = Pq.get_exn pq in
-    Hash_set.add visited (pos, dir);
-    if Coordinate.equal pos end_pos then score
-    else
-      let next_positions =
-        [
-          (Coordinate.add pos dir, dir, score + 1);
-          (pos, Coordinate.rotate_left dir, score + 1000);
-          (pos, Coordinate.rotate_right dir, score + 1000);
-        ]
-      in
-      let pq =
-        List.fold next_positions ~init:pq ~f:(fun pq (pos, dir, score) ->
-            match Map.find_exn board pos with
-            | '#' -> pq
-            | _ ->
-                if Hash_set.mem visited (pos, dir) then pq
-                else Pq.add pq (pos, dir, score))
-      in
-      djikstra pq
+let djikstra ?(end_positions = Set.empty (module Coordinate)) board
+    start_positions =
+  let visited = Hashtbl.create (module Cord2) in
+  let pq =
+    Pq.of_list (List.map start_positions ~f:(fun (pos, dir) -> (pos, dir, 0)))
   in
-  djikstra pq
-
-let solve2 board start_pos end_pos =
-  let rec djikstra pq memo =
+  let rec aux pq =
     if Pq.is_empty pq then ()
     else
       let (pos, dir, score), pq = Pq.get_exn pq in
-      if Hashtbl.mem memo (pos, dir) then djikstra pq memo
+      if Hashtbl.mem visited (pos, dir) then aux pq
       else (
-        Hashtbl.add_exn memo ~key:(pos, dir) ~data:score;
-        let next_positions =
-          [
-            (Coordinate.add pos dir, dir, score + 1);
-            (pos, Coordinate.rotate_left dir, score + 1000);
-            (pos, Coordinate.rotate_right dir, score + 1000);
-          ]
-        in
-        let pq =
-          List.fold next_positions ~init:pq ~f:(fun pq (pos, dir, score) ->
-              match Map.find_exn board pos with
-              | '#' -> pq
-              | _ ->
-                  if Hashtbl.mem memo (pos, dir) then pq
-                  else Pq.add pq (pos, dir, score))
-        in
-        djikstra pq memo)
+        Hashtbl.add_exn visited ~key:(pos, dir) ~data:score;
+        if Set.mem end_positions pos then ()
+        else
+          let next_positions =
+            let ldir, rdir = Coordinate.(rotate_left dir, rotate_right dir) in
+            [
+              (Coordinate.add pos dir, dir, score + 1);
+              (pos, ldir, score + 1000);
+              (pos, rdir, score + 1000);
+            ]
+          in
+          let pq =
+            List.fold next_positions ~init:pq ~f:(fun pq (pos, dir, score) ->
+                match Map.find_exn board pos with
+                | '#' -> pq
+                | _ ->
+                    if Hashtbl.mem visited (pos, dir) then pq
+                    else Pq.add pq (pos, dir, score))
+          in
+          aux pq)
   in
-  let best_score = solve board start_pos end_pos in
-  let distance_from_start = Hashtbl.create (module Cord2) in
-  let distance_from_end = Hashtbl.create (module Cord2) in
-  djikstra (Pq.singleton (start_pos, (1, 0), 0)) distance_from_start;
-  djikstra
-    (Pq.of_list
-       [
-         (end_pos, (1, 0), 0);
-         (end_pos, (-1, 0), 0);
-         (end_pos, (0, 1), 0);
-         (end_pos, (0, -1), 0);
-       ])
-    distance_from_end;
-  Hashtbl.fold
-    ~init:(Set.empty (module Coordinate))
-    distance_from_start
-    ~f:(fun ~key:(end_pos, end_dir) ~data:dist acc ->
-      let score =
-        Hashtbl.find distance_from_end (end_pos, Coordinate.scale end_dir (-1))
-        |> Option.value ~default:1000000000000
-      in
-      if score + dist = best_score then Set.add acc end_pos else acc)
-  |> Set.length
+  aux pq;
+  visited
 
 let part1 s =
   let board = of_string s in
-  solve board (start_pos board) (end_pos board) |> Int.to_string |> Ok
+  let sp, ep = (start_pos board, end_pos board) in
+  let distances =
+    djikstra
+      ~end_positions:(Set.singleton (module Coordinate) ep)
+      board
+      [ (sp, (1, 0)) ]
+  in
+  List.find_map_exn (Coordinate.offsets |> Set.to_list) ~f:(fun dir ->
+      Hashtbl.find distances (ep, dir))
+  |> Int.to_string |> Ok
 
 let part2 s =
   let board = of_string s in
-  solve2 board (start_pos board) (end_pos board) |> Int.to_string |> Ok
+  let sp, ep = (start_pos board, end_pos board) in
+  let distances_from_beginning = djikstra board [ (sp, (1, 0)) ] in
+  let distances_from_end =
+    djikstra board
+      ((List.map (Coordinate.offsets |> Set.to_list)) ~f:(fun dir -> (ep, dir)))
+  in
+  let best_score = Hashtbl.find_exn distances_from_end (sp, (-1, 0)) in
+  Map.counti board ~f:(fun ~key:pos ~data:c ->
+      if Char.(c = '#') then false
+      else
+        Set.exists Coordinate.offsets ~f:(fun dir ->
+            let n1 =
+              Hashtbl.find distances_from_beginning (pos, dir)
+              |> Option.value ~default:1000000
+            in
+            let n2 =
+              Hashtbl.find distances_from_end (pos, Coordinate.turn_around dir)
+              |> Option.value ~default:1000000
+            in
+            n1 + n2 = best_score))
+  |> Int.to_string |> Ok
