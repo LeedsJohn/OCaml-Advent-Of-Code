@@ -19,6 +19,11 @@ let take_int ?(default = 0) s =
     else (Int.of_string num_str, new_s)
   else (default, s)
 
+let take_next_int ?(default = 0) s =
+  match String.findi s ~f:(fun _ c -> Char.is_digit c || Char.equal c '-') with
+  | None -> (default, "")
+  | Some (i, _) -> take_int (String.slice s i 0)
+
 let line_numbers s =
   let rec aux acc s =
     if String.equal s "" then List.rev acc
