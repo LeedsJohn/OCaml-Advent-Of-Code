@@ -79,26 +79,34 @@ module Comp = struct
     | 7 -> cdv
     | op -> raise_s [%message "invalid op number" (op : int)]
 
-  let rec run ({ program; ip; _ } as t) =
-    match Map.find program ip with None -> t | Some n -> run ((num_to_op n) t)
+  let step ({ program; ip; _ } as t) =
+    match Map.find program ip with
+    | None -> None
+    | Some n -> Some ((num_to_op n) t)
 
-  let is_quine t a =
-    let rec take_step ({ program; ip; output; _ } as t) =
-      match Map.find program ip with
-      | None -> Some t
-      | Some 5 ->
-          if Map.length output >= Map.length program then None
-          else
-            let new_t = out t in
-            let i = Map.length new_t.output - 1 in
-            if Map.find_exn new_t.output i <> Map.find_exn new_t.program i then
-              None
-            else take_step new_t
-      | Some n -> take_step ((num_to_op n) t)
+  let rec run t = match step t with Some new_t -> run new_t | None -> t
+
+  let get_quine ({ program; _ } as t) =
+    let loop t =
+      List.fold (List.range 0 8) ~init:(Some t) ~f:(fun acc _ ->
+          match acc with None -> None | Some t -> step t)
     in
-    match take_step { t with a } with
-    | None -> false
-    | Some ran -> Map.equal Int.equal ran.output ran.program
+    let get_as start end_b =
+      List.filter
+        (List.range start (start + 8))
+        ~f:(fun a ->
+          let comp = loop { t with a } in
+          match comp with Some comp -> comp.b % 8 = end_b | None -> false)
+    in
+    let rec aux prev_a step_num =
+      if step_num = -1 then Some prev_a
+      else
+        let goal = Map.find_exn program step_num in
+        let stuff = get_as (prev_a * 8) goal in
+        List.find_map stuff ~f:(fun a ->
+            match aux a (step_num - 1) with None -> None | Some a -> Some a)
+    in
+    aux 0 15
 
   let output_string { output; _ } =
     let s =
@@ -115,13 +123,18 @@ end
 
 let part1 s =
   let comp = Comp.of_string s in
-  let comp = Comp.run comp in
-  Ok (Comp.output_string comp)
+  List.iter
+    [ Int.pow 8 15 - 1; Int.pow 8 15; Int.pow 8 16 - 1; Int.pow 8 16 ]
+    ~f:(fun a ->
+      let comp = Comp.run { comp with a } in
+      let s =
+        Comp.output_string comp
+        |> String.filter ~f:(fun c -> not (Char.equal c ','))
+      in
+      print_s [%sexp (String.length s : int)]);
+  Ok ""
 
 let part2 s =
   let comp = Comp.of_string s in
-  let rec aux i =
-      if (i % 10000000) = 0 then print_s [%sexp (i : int)];
-      if Comp.is_quine comp i then i else aux (i + 1)
-  in
-  aux 0 |> Int.to_string |> Ok
+  let a = Comp.get_quine comp |> Option.value_exn in
+  Ok (Int.to_string a)
