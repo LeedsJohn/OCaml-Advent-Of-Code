@@ -19,9 +19,8 @@ let of_string s =
 let bfs board max_wall =
   let q = Queue.singleton ((0, 0), 0) in
   let res = ref 0 in
-  while not (Queue.is_empty q) do
+  while !res = 0 do
     let pos, steps = Queue.dequeue_exn q in
-    if Coordinate.equal pos (dim, dim) then res := steps;
     List.iter (Coordinate.neighbors pos) ~f:(fun (x, y) ->
         if
           Int.min x y >= 0
@@ -29,6 +28,7 @@ let bfs board max_wall =
           && (board.(y).(x) = -1 || board.(y).(x) > max_wall)
         then (
           board.(y).(x) <- -2;
+          if Coordinate.equal (x, y) (dim, dim) then res := (steps + 1);
           Queue.enqueue q ((x, y), steps + 1)))
   done;
   !res
