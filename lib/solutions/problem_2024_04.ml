@@ -11,7 +11,7 @@ let part1 s =
   let all_words_from_spot start =
     Set.map
       (module String)
-      Coordinate.offsets8
+      (Coordinate.offsets8 |> Set.of_list (module Coordinate))
       ~f:(fun dir -> get_word start dir)
     |> Set.to_list
   in
@@ -30,7 +30,7 @@ let part2 s =
     |> String.of_list |> String.equal "MAS"
   in
   let is_xmas pos =
-    let diags = Set.to_list Coordinate.diagonal_offsets in
+    let diags = Coordinate.diagonal_offsets in
     List.exists (List.cartesian_product diags diags) ~f:(fun (dir1, dir2) ->
         (not (Coordinate.equal dir1 dir2))
         && dir_is_mas pos dir1 && dir_is_mas pos dir2)

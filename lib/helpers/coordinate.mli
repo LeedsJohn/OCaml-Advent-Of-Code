@@ -1,12 +1,7 @@
 open! Core
 
 module T : sig
-  module U : sig
-    type t = int * int [@@deriving compare, sexp, equal, hash]
-  end
-
-  include module type of U
-  include Comparator.S with type t := t
+  type t = int * int [@@deriving compare, sexp, equal, hash]
 end
 
 include module type of T
@@ -19,19 +14,13 @@ val add : t -> t -> t
 val sub : t -> t -> t
 val scale_down : t -> t
 val scale : t -> int -> t
-val neighbors : t -> Set.M(T).t
+val neighbors : t -> t list
 val rotate_right : t -> t
 val rotate_left : t -> t
 val turn_around : t -> t
-val offsets : Set.M(T).t
-val neighbors8 : t -> Set.M(T).t
-val offsets8 : Set.M(T).t
-val diagonals : t -> Set.M(T).t
-val diagonal_offsets : Set.M(T).t
+val offsets : t list
+val neighbors8 : t -> t list
+val offsets8 : t list
+val diagonals : t -> t list
+val diagonal_offsets : t list
 val shoot_ray : start:t -> dir:t -> length:int -> t list
-
-module Direction4 : sig
-  type t = Up | Down | Right | Left [@@deriving sexp, compare, equal, hash]
-
-  val to_offset : t -> coordinate
-end

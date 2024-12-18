@@ -68,7 +68,7 @@ let part1 s =
       board
       [ (sp, (1, 0)) ]
   in
-  List.find_map_exn (Coordinate.offsets |> Set.to_list) ~f:(fun dir ->
+  List.find_map_exn Coordinate.offsets ~f:(fun dir ->
       Hashtbl.find distances (ep, dir))
   |> Int.to_string |> Ok
 
@@ -77,14 +77,15 @@ let part2 s =
   let sp, ep = (start_pos board, end_pos board) in
   let distances_from_beginning = djikstra board [ (sp, (1, 0)) ] in
   let distances_from_end =
-    djikstra board
-      ((List.map (Coordinate.offsets |> Set.to_list)) ~f:(fun dir -> (ep, dir)))
+    djikstra board ((List.map Coordinate.offsets) ~f:(fun dir -> (ep, dir)))
   in
   let best_score = Hashtbl.find_exn distances_from_end (sp, (-1, 0)) in
   Map.counti board ~f:(fun ~key:pos ~data:c ->
       if Char.(c = '#') then false
       else
-        Set.exists Coordinate.offsets ~f:(fun dir ->
+        Set.exists
+          (Coordinate.offsets |> Set.of_list (module Coordinate))
+          ~f:(fun dir ->
             let n1 =
               Hashtbl.find distances_from_beginning (pos, dir)
               |> Option.value ~default:1000000

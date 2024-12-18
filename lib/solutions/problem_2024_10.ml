@@ -11,6 +11,7 @@ let get_trail_score board start =
     if height = 9 then 1
     else
       Coordinate.neighbors pos
+      |> Set.of_list (module Coordinate)
       |> Set.filter ~f:(fun pos ->
              match Map.find board pos with
              | None -> false
@@ -30,6 +31,7 @@ let get_rating board start =
     if height = 9 then 1
     else
       Coordinate.neighbors pos
+      |> Set.of_list (module Coordinate)
       |> Set.filter ~f:(fun pos ->
              match Map.find board pos with
              | None -> false

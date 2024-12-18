@@ -34,7 +34,9 @@ module Garden = struct
     Hash_set.add visited start_pos;
     let plant = Map.find_exn board start_pos in
     let rec aux pos =
-      Set.iter (Coordinate.neighbors pos) ~f:(fun new_pos ->
+      Set.iter
+        (Coordinate.neighbors pos |> Set.of_list (module Coordinate))
+        ~f:(fun new_pos ->
           if
             (not (Hash_set.mem visited new_pos))
             && Char.equal (get t new_pos |> Option.value ~default:'.') plant
@@ -52,7 +54,9 @@ module Garden = struct
       (module Int)
       group
       ~f:(fun pos ->
-        Set.count (Coordinate.neighbors pos) ~f:(fun pos ->
+        Set.count
+          (Coordinate.neighbors pos |> Set.of_list (module Coordinate))
+          ~f:(fun pos ->
             not (Char.equal (get t pos |> Option.value ~default:'.') plant)))
     / scale
 
@@ -62,7 +66,9 @@ module Garden = struct
   let is_corner group pos =
     let out_corner =
       let neighbors =
-        Set.filter (Coordinate.neighbors pos) ~f:(fun pos -> Set.mem group pos)
+        Set.filter
+          (Coordinate.neighbors pos |> Set.of_list (module Coordinate))
+          ~f:(fun pos -> Set.mem group pos)
       in
       Set.mem group pos
       && Set.length neighbors = 2
@@ -72,7 +78,9 @@ module Garden = struct
               (0, 0))
     in
     let in_corner =
-      Set.count (Coordinate.neighbors8 pos) ~f:(fun pos -> Set.mem group pos)
+      Set.count
+        (Coordinate.neighbors8 pos |> Set.of_list (module Coordinate))
+        ~f:(fun pos -> Set.mem group pos)
       = 7
       && Set.mem group pos
     in
