@@ -28,7 +28,7 @@ let bfs board max_wall =
           && (board.(y).(x) = -1 || board.(y).(x) > max_wall)
         then (
           board.(y).(x) <- -2;
-          if Coordinate.equal (x, y) (dim, dim) then res := (steps + 1);
+          if Coordinate.equal (x, y) (dim, dim) then res := steps + 1;
           Queue.enqueue q ((x, y), steps + 1)))
   done;
   !res

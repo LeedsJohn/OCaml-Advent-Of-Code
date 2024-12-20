@@ -13,6 +13,7 @@ include T
 
 type coordinate = t
 
+let distance (x1, y1) (x2, y2) = Int.abs (x1 - x2) + Int.abs (y1 - y2)
 let neighbors (x, y) = [ (x + 1, y); (x - 1, y); (x, y + 1); (x, y - 1) ]
 let rotate_right (x, y) = (-y, x)
 let rotate_left t = rotate_right t |> rotate_right |> rotate_right

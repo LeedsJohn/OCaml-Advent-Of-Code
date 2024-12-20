@@ -10,6 +10,7 @@ type coordinate = t
 
 include Comparator.S with type t := t
 
+val distance : t -> t -> int
 val add : t -> t -> t
 val sub : t -> t -> t
 val scale_down : t -> t
