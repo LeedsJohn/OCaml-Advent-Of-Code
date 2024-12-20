@@ -64,5 +64,5 @@ let part2 s =
 
 let%expect_test "stuff" =
   print_s [%sexp (solve (1, 1) (2, 1) (11, 10) 100 : int)];
-  [%expect {||}];
+  [%expect {| 28 |}];
   ()
