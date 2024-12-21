@@ -1,6 +1,6 @@
 open! Core
 
-type 'a t = 'a Map.M(Coordinate).t [@@deriving equal]
+type 'a t = 'a Map.M(Coordinate).t [@@deriving equal, compare, sexp_of]
 
 val of_string : string -> char t
 val min_coordinates : 'a t -> int * int

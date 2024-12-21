@@ -1,6 +1,6 @@
 open! Core
 
-type 'a t = 'a Map.M(Coordinate).t [@@deriving equal]
+type 'a t = 'a Map.M(Coordinate).t [@@deriving equal, compare, sexp_of]
 
 let of_string s =
   List.foldi (String.split_lines s)
