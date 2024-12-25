@@ -8,3 +8,5 @@ val is_prime : int -> bool
 
 (* map of prime factor : power *)
 val prime_factorization : int -> int Map.M(Int).t
+val int_to_bin_string : int -> string
+val bin_string_to_int : string -> int

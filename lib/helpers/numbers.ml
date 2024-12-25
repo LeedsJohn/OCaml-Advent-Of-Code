@@ -34,6 +34,23 @@ let prime_factorization n =
   in
   aux (Map.empty (module Int)) n
 
+let int_to_bin_string n =
+  if n < 0 then
+    raise_s
+      [%message "can't convert negative numbers to binary string" (n : int)];
+  let rec aux acc n =
+    if n = 0 then List.rev acc |> String.of_list
+    else if n % 2 = 1 then aux ('1' :: acc) (n / 2)
+    else aux ('0' :: acc) (n / 2)
+  in
+  aux [] n
+
+let bin_string_to_int s =
+  String.foldi s ~init:0 ~f:(fun i acc c ->
+      if Char.equal c '0' then acc
+      else if Char.equal c '1' then acc + Int.pow 2 i
+      else raise_s [%message "invalid character in binary string" (c : char)])
+
 let%expect_test "primes up to" =
   print_s [%sexp (primes_up_to 97 : int list)];
   [%expect
@@ -51,4 +68,13 @@ let%expect_test "prime factorization" =
   print_s
     [%sexp (prime_factorization (2 * 3 * 5 * 49 * 17 * 97) : int Map.M(Int).t)];
   [%expect {| ((2 1) (3 1) (5 1) (7 2) (17 1) (97 1)) |}];
+  ()
+
+let%expect_test "bin strings" =
+  let nums =
+    List.map (List.range 0 13) ~f:(fun n ->
+        bin_string_to_int (int_to_bin_string n))
+  in
+  print_s [%sexp (nums : int list)];
+  [%expect {| (0 1 2 3 4 5 6 7 8 9 10 11 12) |}];
   ()
