@@ -72,10 +72,16 @@ let part2 s =
 let%expect_test "" =
   let t = of_string "aaaaaaay" in
   print_s [%sexp (to_string t : string)];
-  [%expect {| aaaaaay |}];
+  [%expect {|
+    aaaaaaay
+    aaaaaaay
+    |}];
   let t = of_string "aaaaaaay" in
   print_s [%sexp (to_string (t + 1) : string)];
-  [%expect {| aaaaaaz |}];
+  [%expect {|
+    aaaaaaay
+    aaaaaaaz
+    |}];
   print_s [%sexp (to_string (t + 2) : string)];
-  [%expect {| aaaaaba |}];
+  [%expect {| aaaaaaba |}];
   ()
