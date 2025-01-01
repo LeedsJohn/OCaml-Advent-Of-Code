@@ -1,4 +1,5 @@
 open! Core
+open! Helpers
 
 let of_string s =
   let lines = String.split_lines s in
@@ -43,40 +44,36 @@ let get_molecules s replacements =
     ~f:(fun ~key:original ~data:replaced acc ->
       Set.union acc (get_one_replacement original replaced))
 
-let bfs replacements start_string goal_string =
-  let rec aux cur steps =
-    if Set.mem cur goal_string then steps
-    else if Set.length cur = 0 then Int.max_value
-    else
-      let neighbors =
-        Set.to_list cur
-        |> List.map ~f:(fun s -> get_molecules s replacements)
-        |> Set.union_list (module String)
-      in
-      aux neighbors (steps + 1)
-  in
-  aux (Set.singleton (module String) start_string) 0
+module Stuff = struct
+  type t = int * string * int [@@deriving sexp_of]
 
-let greedy_bfs replacements start_string goal_string =
-  let rec aux cur steps =
-    if Set.mem cur goal_string then steps
-    else if Set.length cur = 0 then Int.max_value
-    else
+  let compare (n1, _, _) (n2, _, _) = Int.compare n1 n2
+end
+
+module Pq = Priority_queue.Make (Stuff)
+
+let greedy replacements start_string goal_string =
+  let visited = Hash_set.create (module String) in
+  Hash_set.add visited start_string;
+  let rec aux pq =
+    let (_, cur, steps), pq = Pq.get_exn pq in
+    if String.equal cur goal_string then Some steps
+    (* else if String.length cur >= String.length goal_string then None *)
+      else
       let neighbors =
-        Set.to_list cur
-        |> List.map ~f:(fun s -> get_molecules s replacements)
-        |> Set.union_list (module String)
+        get_molecules cur replacements
+        |> Set.to_list
+        |> List.filter ~f:(fun s -> not (Hash_set.mem visited s))
       in
-      let min_length =
-        Set.fold neighbors ~init:Int.max_value ~f:(fun acc s ->
-            Int.min acc (String.length s))
+      List.iter neighbors ~f:(Hash_set.add visited);
+      let pq =
+        List.fold neighbors ~init:pq ~f:(fun acc s ->
+            Pq.add acc (String.length s, s, steps + 1))
       in
-      let neighbors =
-        Set.filter neighbors ~f:(fun s -> String.length s = min_length)
-      in
-      aux neighbors (steps + 1)
+      aux pq
   in
-  aux (Set.singleton (module String) start_string) 0
+  aux (Pq.singleton (String.length start_string, start_string, 0))
+  |> Option.value_exn
 
 let part1 s =
   let replacements, s = of_string s in
@@ -85,4 +82,4 @@ let part1 s =
 let part2 s =
   let replacements, s = of_string s in
   let replacements = invert_replacements replacements in
-  greedy_bfs replacements s "e" |> Int.to_string |> Ok
+  greedy replacements s "e" |> Int.to_string |> Ok
