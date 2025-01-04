@@ -20,6 +20,7 @@ depends: [
   "cohttp-async"
   "core_unix"
   "async"
+  "async_ssl"
   "odoc" {with-doc}
 ]
 build: [

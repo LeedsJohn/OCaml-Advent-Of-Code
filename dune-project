@@ -19,7 +19,7 @@
  (name advent_of_code)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml dune core zarith (ocamlformat (= "0.27.0")) ocaml-lsp-server cohttp cohttp-async core_unix async)
+ (depends ocaml dune core zarith (ocamlformat (= "0.27.0")) ocaml-lsp-server cohttp cohttp-async core_unix async async_ssl)
  (tags
   (topics "to describe" your project)))
 
