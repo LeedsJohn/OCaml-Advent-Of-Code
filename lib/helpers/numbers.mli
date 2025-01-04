@@ -1,6 +1,8 @@
 open! Core
 
 val gcd : int -> int -> int
+val lcm : int -> int -> int
+val lcm_list : int list -> int
 
 (* returns primes in sorted order *)
 val primes_up_to : int -> int list

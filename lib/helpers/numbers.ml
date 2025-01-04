@@ -3,6 +3,9 @@ open! Core
 let rec gcd a b =
   if a = b then a else if a > b then gcd (a - b) b else gcd a (b - a)
 
+let lcm a b = a / gcd a b * b
+let lcm_list nums = List.fold nums ~init:1 ~f:lcm
+
 let primes_up_to n =
   let nums = Array.init (n + 1) ~f:(fun _ -> true) in
   nums.(0) <- false;
