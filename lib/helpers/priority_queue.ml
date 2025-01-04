@@ -74,47 +74,4 @@ functor
             meld (Pq (List.rev c)) (Pq ts)
       in
       (res, new_pq)
-
-    (* let rec meld t1 t2 =
-       match (t1, t2) with
-       | [], ts -> ts
-       | ts, [] -> ts
-       | t1 :: ts1, t2 :: ts2 ->
-           if rank t1 < rank t2 then t1 :: meld ts1 (t2 :: ts2)
-           else if rank t2 < rank t1 then t2 :: meld (t1 :: ts1) ts2
-           else ins (link t1 t2) (meld ts1 ts2) *)
-
-    (* let singleton e = [ e ]
-       let of_list l = List.sort l ~compare:Elem.compare
-       let add t e = List.merge t [ e ] ~compare:Elem.compare
-
-       let peak_exn = function
-         | e :: _ -> e
-         | [] -> raise_s [%sexp ("Tried to peak on empty priority queue" : string)]
-
-       let get_exn (t : t) : Elem.t * t =
-         match t with
-         | hd :: tl -> (hd, tl)
-         | _ -> raise_s [%sexp ("Tried to pop on empty priority queue" : string)] *)
   end
-
-(* module Make (Elem : sig
-     type t [@@deriving compare, sexp_of]
-   end) =
-   struct
-     type t = Elem.t list [@@deriving sexp_of]
-
-     let empty = []
-     let singleton e = [ e ]
-     let of_list l = List.sort l ~compare:Elem.compare
-     let add t e = List.merge t [ e ] ~compare:Elem.compare
-
-     let peak_exn = function
-       | e :: _ -> e
-       | [] -> raise_s [%sexp ("Tried to peak on empty priority queue" : string)]
-
-     let get_exn (t : t) : Elem.t * t =
-       match t with
-       | hd :: tl -> (hd, tl)
-       | _ -> raise_s [%sexp ("Tried to pop on empty priority queue" : string)]
-   end *)
