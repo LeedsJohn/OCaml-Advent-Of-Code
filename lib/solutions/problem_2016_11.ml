@@ -1,5 +1,9 @@
 open! Core
 
+(* i was silly and made a mistake and turned Thing.t into an int (instead of a
+   | Chip of string | Generator of string) because I made an error in my bfs and thought
+   that I had to make memory saving optimizations when I didn't *)
+
 let get_combos things =
   let rec aux acc = function
     | [ _ ] | [] -> acc
@@ -32,7 +36,7 @@ module Thing = struct
     (match String.get s 0 with
     | 'C' -> "Chip " ^ String.slice s 1 0
     | _ -> "Generator " ^ String.slice s 1 0)
-    |> Sexp.of_string
+    |> String.sexp_of_t
 
   let toggle t =
     let s = otherway.(t) in
@@ -134,12 +138,6 @@ end
 let bfs start =
   let visited = Hash_set.create (module Building) in
   let rec aux cur steps =
-    print_s
-      [%message
-        ""
-          (steps : int)
-          ~cur_length:(List.length cur : int)
-          ~states_explored:(Hash_set.length visited : int)];
     match (List.length cur, List.exists cur ~f:Building.all_at_top) with
     | 0, _ -> Int.max_value
     | _, true -> steps
@@ -148,6 +146,8 @@ let bfs start =
         let neighbors =
           List.map cur ~f:Building.get_all_moves
           |> List.join
+          |> Hash_set.of_list (module Building)
+          |> Hash_set.to_list
           |> List.filter ~f:(fun b -> not (Hash_set.mem visited b))
         in
         List.iter neighbors ~f:(Hash_set.add visited);
@@ -156,50 +156,15 @@ let bfs start =
   Hash_set.add visited start;
   aux [ start ] 0
 
-let part1 s =
+let part1 s = Building.of_string s |> bfs |> Int.to_string |> Ok
+
+let part2 s =
   let building = Building.of_string s in
-  bfs building |> Int.to_string |> Ok
-
-let part2 _ = Error (Error.of_string "Unimplemented")
-
-(* let%expect_test "" =
-  let s =
-    {|The first floor contains a hydrogen-compatible microchip and a lithium-compatible microchip.
-The second floor contains a hydrogen generator.
-The third floor contains a lithium generator.
-The fourth floor contains nothing relevant.|}
+  let building =
+    List.fold [ "elerium"; "dilithium" ] ~init:building ~f:(fun acc name ->
+        let thing1 = Thing.get_thing ~is_chip:true ~name in
+        let thing2 = Thing.get_thing ~is_chip:false ~name in
+        let acc = Building.add_thing acc 1 thing1 in
+        Building.add_thing acc 1 thing2)
   in
-  let t = Building.of_string s in
-  print_s [%sexp (t : Building.t)];
-  [%expect
-    {|
-    ((elevator 1)
-     (floors
-      ((1 ((Chip lithium) (Chip hydrogen))) (2 ((Generator hydrogen)))
-       (3 ((Generator lithium))) (4 ()))))
-    |}];
-  print_s
-    [%sexp
-      (Building.move_things t ~start_floor:1 ~end_floor:2
-         [ Thing.Chip "lithium"; Chip "hydrogen" ]
-        : Building.t)];
-  [%expect
-    {|
-    ((elevator 2)
-     (floors
-      ((1 ()) (2 ((Chip hydrogen) (Chip lithium) (Generator hydrogen)))
-       (3 ((Generator lithium))) (4 ()))))
-    |}];
-  print_s [%sexp (Building.get_all_moves t : Building.t list)];
-  [%expect
-    {|
-    (((elevator 2)
-      (floors
-       ((1 ((Chip hydrogen))) (2 ((Chip lithium) (Generator hydrogen)))
-        (3 ((Generator lithium))) (4 ()))))
-     ((elevator 2)
-      (floors
-       ((1 ((Chip lithium))) (2 ((Chip hydrogen) (Generator hydrogen)))
-        (3 ((Generator lithium))) (4 ())))))
-    |}];
-  () *)
+  bfs building |> Int.to_string |> Ok
