@@ -27,7 +27,11 @@ let take_next_int ?(default = 0) s =
 let line_numbers s =
   let rec aux acc s =
     if String.equal s "" then List.rev acc
-    else if Char.is_digit (String.get s 0) || Char.equal '-' (String.get s 0)
+    else if
+      Char.is_digit (String.get s 0)
+      || String.length s > 1
+         && Char.equal '-' (String.get s 0)
+         && Char.is_digit (String.get s 1)
     then
       let num, s = take_int s in
       aux (num :: acc) (String.drop_prefix s 1)
