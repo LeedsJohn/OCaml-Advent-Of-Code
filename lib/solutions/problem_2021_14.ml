@@ -2,28 +2,34 @@ open! Core
 
 let step s insertion_rules =
   String.foldi s ~init:[] ~f:(fun i acc c ->
-      if i + 1 = String.length s then c :: acc
-      else
-        match Map.find insertion_rules (String.slice s i (i + 2)) with
-        | None -> c :: acc
-        | Some e -> e :: c :: acc)
-  |> List.rev |> String.of_list
+    if i + 1 = String.length s
+    then c :: acc
+    else (
+      match Map.find insertion_rules (String.slice s i (i + 2)) with
+      | None -> c :: acc
+      | Some e -> e :: c :: acc))
+  |> List.rev
+  |> String.of_list
+;;
 
 let char_counts s =
-  String.fold s
+  String.fold
+    s
     ~init:(Map.empty (module Char))
     ~f:(fun acc c ->
       match Map.mem acc c with
       | true -> acc
       | false ->
-          let count = String.count s ~f:(Char.equal c) in
-          Map.add_exn acc ~key:c ~data:count)
+        let count = String.count s ~f:(Char.equal c) in
+        Map.add_exn acc ~key:c ~data:count)
+;;
 
 let merge_char_counts c1 c2 =
   Map.merge c1 c2 ~f:(fun ~key:_ elem ->
-      match elem with
-      | `Both (n1, n2) -> Some (n1 + n2)
-      | `Left n | `Right n -> Some n)
+    match elem with
+    | `Both (n1, n2) -> Some (n1 + n2)
+    | `Left n | `Right n -> Some n)
+;;
 
 let memo = Hashtbl.create (module String)
 
@@ -33,23 +39,24 @@ let count_after_steps s rules steps =
     match Hashtbl.find memo key with
     | Some res -> res
     | None ->
-        let res =
-          match steps with
-          | 0 -> char_counts (String.slice s 0 1)
-          | _ ->
-              let next_s = step s rules in
-              String.foldi next_s
-                ~init:(Map.empty (module Char))
-                ~f:(fun i acc _ ->
-                  if i + 1 = String.length next_s then acc
-                  else
-                    merge_char_counts acc
-                      (aux (String.slice next_s i (i + 2)) (steps - 1)))
-        in
-        Hashtbl.add_exn memo ~key ~data:res;
-        res
+      let res =
+        match steps with
+        | 0 -> char_counts (String.slice s 0 1)
+        | _ ->
+          let next_s = step s rules in
+          String.foldi
+            next_s
+            ~init:(Map.empty (module Char))
+            ~f:(fun i acc _ ->
+              if i + 1 = String.length next_s
+              then acc
+              else merge_char_counts acc (aux (String.slice next_s i (i + 2)) (steps - 1)))
+      in
+      Hashtbl.add_exn memo ~key ~data:res;
+      res
   in
   aux s steps |> merge_char_counts (char_counts (String.suffix s 1))
+;;
 
 let parse s =
   let lines = String.split_lines s in
@@ -61,19 +68,21 @@ let parse s =
       ~f:(fun acc line ->
         Map.add_exn acc ~key:(String.slice line 0 2) ~data:(String.get line 6))
   in
-  (start, insertion_rules)
+  start, insertion_rules
+;;
 
 let solve s steps =
   let start, rules = parse s in
   let counts = count_after_steps start rules steps |> Map.data in
   let big, little =
-    List.fold counts ~init:(Int.min_value, Int.max_value)
-      ~f:(fun (big, little) n -> (Int.max big n, Int.min little n))
+    List.fold counts ~init:(Int.min_value, Int.max_value) ~f:(fun (big, little) n ->
+      Int.max big n, Int.min little n)
   in
   big - little
+;;
 
-let part1 s = Ok (Int.to_string (solve s 10))
-let part2 s = Ok (Int.to_string (solve s 40))
+let part1 s = Int.to_string (solve s 10)
+let part2 s = Int.to_string (solve s 40)
 
 let%expect_test "step" =
   let s =
@@ -99,6 +108,7 @@ CN -> C|}
   let start, rules = parse s in
   print_s [%sexp (step start rules : string)];
   [%expect {| NCNBCHB |}]
+;;
 
 let%expect_test "char counts" =
   let s =
@@ -130,9 +140,9 @@ CN -> C|}
   show_stuff start;
   let _ =
     List.fold (List.range 0 10) ~init:start ~f:(fun s _ ->
-        let s = step s rules in
-        show_stuff s;
-        s)
+      let s = step s rules in
+      show_stuff s;
+      s)
   in
   [%expect
     {|
@@ -159,3 +169,4 @@ CN -> C|}
     3073
     ((B 1749) (C 298) (H 161) (N 865))
     |}]
+;;

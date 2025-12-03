@@ -70,7 +70,7 @@ open! Core
              if not (dir_equal dir dir2) then Int.min acc (Int.abs x + Int.abs y)
              else acc
          | _ -> acc)
-     |> Int.to_string |> Ok
+     |> Int.to_string 
 
    let part2 s =
      let l1, l2 =
@@ -84,7 +84,7 @@ open! Core
          | Some (dir2, steps2) ->
              if not (dir_equal dir dir2) then Int.min acc (steps + steps2) else acc
          | _ -> acc)
-     |> Int.to_string |> Ok *)
+     |> Int.to_string  *)
 
-let part1 _ = Error (Error.of_string "uses deprecated module")
-let part2 _ = Error (Error.of_string "uses deprecated module")
+let part1 _ = raise_s [%message "unimplemented"]
+let part2 _ = raise_s [%message "unimplemented"]

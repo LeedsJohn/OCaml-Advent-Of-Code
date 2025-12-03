@@ -1,7 +1,9 @@
 open! Core
 
 module Operand = struct
-  type t = Literal of int | Reg of char
+  type t =
+    | Literal of int
+    | Reg of char
 end
 
 module Instruction = struct
@@ -24,10 +26,17 @@ module Instruction = struct
     | "jnz" -> Jnz (get_op ar.(1), Int.of_string ar.(2))
     | "cpy" -> Cpy (get_op ar.(1), String.get ar.(2) 0)
     | s -> raise_s [%message "bad instruction" ~instruction:(s : string)]
+  ;;
 end
 
 module Computer = struct
-  type t = { a : int; b : int; c : int; d : int; ip : int }
+  type t =
+    { a : int
+    ; b : int
+    ; c : int
+    ; d : int
+    ; ip : int
+    }
 
   let start = { a = 0; b = 0; c = 0; d = 0; ip = 0 }
   let get_a { a; _ } = a
@@ -46,6 +55,7 @@ module Computer = struct
     | 'c' -> get_c t
     | 'd' -> get_d t
     | reg -> raise_s [%message "bad register" (reg : char)]
+  ;;
 
   let set t c thing =
     match c with
@@ -54,51 +64,65 @@ module Computer = struct
     | 'c' -> set_c t thing
     | 'd' -> set_d t thing
     | reg -> raise_s [%message "bad register" (reg : char)]
+  ;;
 
   let cpy t x y =
-    let new_val = match x with Operand.Literal n -> n | Reg c -> get t c in
+    let new_val =
+      match x with
+      | Operand.Literal n -> n
+      | Reg c -> get t c
+    in
     let t = set t y new_val in
     { t with ip = t.ip + 1 }
+  ;;
 
   let inc t x =
     let t = set t x (get t x + 1) in
     { t with ip = t.ip + 1 }
+  ;;
 
   let dec t x =
     let t = set t x (get t x - 1) in
     { t with ip = t.ip + 1 }
+  ;;
 
   let jnz t x y =
-    let x_val = match x with Operand.Literal n -> n | Reg x -> get t x in
+    let x_val =
+      match x with
+      | Operand.Literal n -> n
+      | Reg x -> get t x
+    in
     if x_val = 0 then { t with ip = t.ip + 1 } else { t with ip = t.ip + y }
+  ;;
 
   let apply_instruction t = function
     | Instruction.Cpy (x, y) -> cpy t x y
     | Inc x -> inc t x
     | Dec x -> dec t x
     | Jnz (x, y) -> jnz t x y
+  ;;
 
   let run t instructions =
     let rec aux ({ ip; _ } as t) =
-      if Int.between ip ~low:0 ~high:(Array.length instructions - 1) then
-        aux (apply_instruction t instructions.(ip))
+      if Int.between ip ~low:0 ~high:(Array.length instructions - 1)
+      then aux (apply_instruction t instructions.(ip))
       else t
     in
     aux t
+  ;;
 end
 
 let get_instructions s =
   String.split_lines s |> List.to_array |> Array.map ~f:Instruction.of_string
+;;
 
 let part1 s =
-  let ({ a; _ } : Computer.t) =
-    Computer.run Computer.start (get_instructions s)
-  in
-  Int.to_string a |> Ok
+  let ({ a; _ } : Computer.t) = Computer.run Computer.start (get_instructions s) in
+  Int.to_string a
+;;
 
 let part2 s =
   let start_computer = { Computer.start with c = 1 } in
-  let ({ a; _ } : Computer.t) =
-    Computer.run start_computer (get_instructions s)
-  in
-  Int.to_string a |> Ok
+  let ({ a; _ } : Computer.t) = Computer.run start_computer (get_instructions s) in
+  Int.to_string a
+;;

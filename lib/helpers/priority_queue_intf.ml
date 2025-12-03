@@ -15,10 +15,10 @@ module type S = sig
 end
 
 module type MAKER = functor
-  (Elem : sig
-     type t [@@deriving compare, sexp_of]
-   end)
-  -> S with type elem := Elem.t
+    (Elem : sig
+       type t [@@deriving compare, sexp_of]
+     end)
+    -> S with type elem := Elem.t
 
 module type Intf = sig
   module type S = S

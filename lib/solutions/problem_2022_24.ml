@@ -124,7 +124,7 @@ open! Core
    let part1 s =
      let board = Board.of_string s in
      let end_pos = Board.winning_position board in
-     Ok (bfs ~board ~start_pos:(1, 0) ~end_pos ~start_step:0 |> Int.to_string)
+      (bfs ~board ~start_pos:(1, 0) ~end_pos ~start_step:0 |> Int.to_string)
 
    let part2 s =
      let board = Board.of_string s in
@@ -135,7 +135,7 @@ open! Core
        bfs ~board ~start_pos:end_pos ~end_pos:start_pos ~start_step:step1
      in
      let step3 = bfs ~board ~start_pos ~end_pos ~start_step:(step1 + step2) in
-     Ok (step1 + step2 + step3 |> Int.to_string) *)
+      (step1 + step2 + step3 |> Int.to_string) *)
 
-let part1 _ = Error (Error.of_string "uses deprecated module")
-let part2 _ = Error (Error.of_string "uses deprecated module")
+let part1 _ = raise_s [%message "unimplemented"]
+let part2 _ = raise_s [%message "unimplemented"]

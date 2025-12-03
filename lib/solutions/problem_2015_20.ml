@@ -6,6 +6,7 @@ let presents_delivered n =
     if n % i = 0 then res := !res + i
   done;
   10 * !res
+;;
 
 let presents_delivered2 n =
   let res = ref 0 in
@@ -14,6 +15,7 @@ let presents_delivered2 n =
     if n % i = 0 then res := !res + i
   done;
   11 * !res
+;;
 
 let part1 s =
   let n = Int.of_string s in
@@ -21,7 +23,8 @@ let part1 s =
     if i % 1000 = 0 then print_s [%sexp (i : int)];
     if presents_delivered i >= n then i else aux (i + 1)
   in
-  aux 1 |> Int.to_string |> Ok
+  aux 1 |> Int.to_string
+;;
 
 let part2 s =
   let n = Int.of_string s in
@@ -29,7 +32,8 @@ let part2 s =
     if i % 1000 = 0 then print_s [%sexp (i : int)];
     if presents_delivered2 i >= n then i else aux (i + 1)
   in
-  aux 1 |> Int.to_string |> Ok
+  aux 1 |> Int.to_string
+;;
 
 let%expect_test "" =
   print_s [%sexp (presents_delivered 8 : int)];
@@ -37,3 +41,4 @@ let%expect_test "" =
   print_s [%sexp (presents_delivered2 51 : int)];
   [%expect {| 781 |}];
   ()
+;;
