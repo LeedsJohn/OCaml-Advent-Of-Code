@@ -229,40 +229,6 @@ let get_button_to_push ~counter ~buttons =
   | false -> best_button, 0, max_presses
 ;;
 
-(*= let best_button_sets =
-    Counter.counter_indices counter
-    |> List.fold ~init:[ buttons ] ~f:(fun acc i ->
-      let buttons_in_group = Button_set.touching_counter_index buttons ~i in
-      let num_buttons = Button_set.length buttons_in_group in
-      match num_buttons > 0 with
-      | false -> acc
-      | true ->
-        (match
-           [%compare: int] num_buttons (Button_set.length (List.hd_exn acc))
-           |> Ordering.of_int
-         with
-         | Less -> [ buttons_in_group ]
-         | Greater -> acc
-         | Equal -> buttons_in_group :: acc))
-  in
-  (* maybe choose the button that touches the most lights here? or the button with the
-       minimum max presses? *)
-  let a_button = List.hd_exn best_button_sets |> Button_set.get_button in
-  match List.hd_exn best_button_sets |> Button_set.length = 1 with
-  | true ->
-    let max_presses = Counter.max_times_can_press_button counter ~button:a_button in
-    a_button, max_presses, max_presses
-  | false ->
-    let best_button =
-      Set.union_list (module Button) best_button_sets
-      |> Set.fold ~init:a_button ~f:(fun best_button button ->
-        match Button.num_counters button > Button.num_counters best_button with
-        | true -> button
-        | false -> best_button)
-    in
-    best_button, 0, Counter.max_times_can_press_button counter ~button:best_button
-;; *)
-
 let solve ~counter ~buttons =
   let rec aux ~counter ~buttons ~cur_presses ~best_presses =
     match Counter.is_empty counter with
