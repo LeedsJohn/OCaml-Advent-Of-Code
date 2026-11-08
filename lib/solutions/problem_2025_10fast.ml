@@ -207,9 +207,21 @@ let get_button_to_push ~counter ~buttons =
         | false ->
           let buttons = Button_set.touching_counter_index buttons ~i in
           let num_in_new_group = Button_set.length buttons in
-          (match num_in_new_group > 0 && num_in_new_group < num_buttons_in_group with
-           | true -> Button_set.button_with_most_lights buttons, num_in_new_group
-           | false -> best_button, num_buttons_in_group))
+          (match num_in_new_group > 0 with
+           | false -> best_button, num_buttons_in_group
+           | true ->
+             (match
+                [%compare: int] num_buttons_in_group num_in_new_group |> Ordering.of_int
+              with
+              | Less -> best_button, num_buttons_in_group
+              | Equal ->
+                let best_in_group = Button_set.button_with_most_lights buttons in
+                (match
+                   Button.num_counters best_in_group > Button.num_counters best_button
+                 with
+                 | true -> best_in_group, num_in_new_group
+                 | false -> best_button, num_buttons_in_group)
+              | Greater -> Button_set.button_with_most_lights buttons, num_in_new_group)))
   in
   let max_presses = Counter.max_times_can_press_button counter ~button:best_button in
   match best_num_in_group = 1 with
