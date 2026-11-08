@@ -1,6 +1,8 @@
 open! Core
 open Helpers
 
+let big_num = 1_000_000_000
+
 module Button : sig
   type t = private int [@@deriving compare, equal, sexp_of]
 
@@ -94,7 +96,7 @@ let buttons_touching_counter_index ~buttons ~i =
   Set.filter buttons ~f:(Button.touches_counter ~i)
 ;;
 
-let minimum_presses ?(stop_if_greater_than = 100000) ~counter ~buttons () =
+let minimum_presses ?(stop_if_greater_than = big_num) ~counter ~buttons () =
   let rec aux ~counter ~cur_pushes =
     let max_count = Counter.max_count counter in
     match max_count <= 0 || cur_pushes > stop_if_greater_than with
@@ -106,7 +108,7 @@ let minimum_presses ?(stop_if_greater_than = 100000) ~counter ~buttons () =
         |> Set.fold ~init:Button.empty ~f:Button.combine
       in
       (match [%equal: Button.t] mega_button Button.empty with
-       | true -> cur_pushes
+       | true -> big_num
        | false ->
          aux
            ~counter:(Counter.press_button counter ~button:mega_button ~times:max_count)
@@ -173,7 +175,7 @@ let solve ~counter ~buttons =
            let buttons = Set.remove buttons button in
            aux ~counter ~buttons ~cur_presses:(cur_presses + num_presses) ~best_presses))
   in
-  aux ~counter ~buttons ~cur_presses:0 ~best_presses:1000000
+  aux ~counter ~buttons ~cur_presses:0 ~best_presses:big_num
 ;;
 
 let strings_between s ~open_char ~close_char =
