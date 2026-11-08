@@ -277,7 +277,7 @@ let solve ~counter ~buttons =
        | false -> best_presses
        | true ->
          let button, min_presses, max_presses = get_button_to_push ~counter ~buttons in
-         List.range ~stride:(-1) max_presses (min_presses - 1)
+         List.range min_presses (max_presses + 1)
          |> List.fold ~init:best_presses ~f:(fun best_presses num_presses ->
            let counter = Counter.press_button counter ~button ~times:num_presses in
            let buttons = Button_set.remove buttons ~button in
