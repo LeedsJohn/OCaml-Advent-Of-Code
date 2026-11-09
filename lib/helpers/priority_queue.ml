@@ -58,16 +58,18 @@ functor
         else Pq (ins (meld (Pq ts1) (Pq ts2)) (link t1 t2))
     ;;
 
-    let rec peak_exn = function
-      | Pq [] -> raise_s [%message "Attempted to peak empty priority queue"]
+    let rec peek_exn = function
+      | Pq [] -> raise_s [%message "Attempted to peek empty priority queue"]
       | Pq [ t ] -> root t
       | Pq (t :: ts) ->
-        let x = peak_exn (Pq ts) in
+        let x = peek_exn (Pq ts) in
         if Elem.compare (root t) x <= 0 then root t else x
     ;;
 
+    let peek = Fn.compose Option.some peek_exn
+
     let get_exn (t : t) =
-      let res = peak_exn t in
+      let res = peek_exn t in
       let new_pq =
         match t with
         | Pq [] -> raise_s [%message "Attempted to get from empty priority queue"]
@@ -84,4 +86,6 @@ functor
       in
       res, new_pq
     ;;
+
+    let get = Fn.compose Option.some get_exn
   end

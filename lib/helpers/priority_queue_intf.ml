@@ -10,8 +10,10 @@ module type S = sig
   val singleton : elem -> t
   val of_list : elem list -> t
   val add : t -> elem -> t
-  val peak_exn : t -> elem
+  val peek_exn : t -> elem
+  val peek : t -> elem option
   val get_exn : t -> elem * t
+  val get : t -> (elem * t) option
 end
 
 module type MAKER = functor
