@@ -66,7 +66,10 @@ functor
         if Elem.compare (root t) x <= 0 then root t else x
     ;;
 
-    let peek = Fn.compose Option.some peek_exn
+    let peek t =
+      try Some (peek_exn t) with
+      | _ -> None
+    ;;
 
     let get_exn (t : t) =
       let res = peek_exn t in
@@ -87,5 +90,8 @@ functor
       res, new_pq
     ;;
 
-    let get = Fn.compose Option.some get_exn
+    let get t =
+      try Some (get_exn t) with
+      | _ -> None
+    ;;
   end
