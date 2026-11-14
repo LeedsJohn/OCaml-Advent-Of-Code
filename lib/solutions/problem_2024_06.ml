@@ -13,7 +13,7 @@ module Game = struct
     let warden_pos =
       Map.to_alist b |> List.find_exn ~f:(fun (_, c) -> Char.equal c '^') |> fst
     in
-    { board; warden = warden_pos, (0, -1) }
+    { board; warden = warden_pos, Coordinate.make ~x:0 ~y:(-1) }
   ;;
 
   let _to_string { board; warden = pos, _ } =

@@ -32,7 +32,7 @@ module Garden = struct
     |> Board.to_string
   ;;
 
-  let get { board; _ } (x, y) = Map.find board (x, y)
+  let get { board; _ } pos = Map.find board pos
 
   let get_group ({ board; _ } as t) start_pos =
     let visited = Hash_set.create (module Coordinate) in
@@ -79,7 +79,10 @@ module Garden = struct
       in
       Set.mem group pos
       && Set.length neighbors = 2
-      && not (Coordinate.equal (Set.fold neighbors ~init:(0, 0) ~f:Coordinate.add) (0, 0))
+      && not
+           (Coordinate.equal
+              (Set.fold neighbors ~init:Coordinate.origin ~f:Coordinate.add)
+              Coordinate.origin)
     in
     let in_corner =
       Set.count

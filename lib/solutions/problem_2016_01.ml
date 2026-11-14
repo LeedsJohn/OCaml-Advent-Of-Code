@@ -6,7 +6,7 @@ let part1 s =
     String.split s ~on:' '
     |> List.map ~f:(fun s -> String.chop_suffix_if_exists s ~suffix:",")
     |> List.fold
-         ~init:((0, 0), (0, -1))
+         ~init:(Coordinate.origin, Coordinate.make ~x:0 ~y:(-1))
          ~f:(fun (pos, dir) s ->
            let dir =
              if Char.equal (String.get s 0) 'R'
@@ -20,6 +20,7 @@ let part1 s =
            in
            pos, dir)
     |> fst
+    |> Coordinate.xy
   in
   Int.abs a + Int.abs b |> Int.to_string
 ;;
@@ -45,12 +46,19 @@ let part2 s =
         |> List.tl_exn
       in
       (match List.find visited_positions ~f:(Set.mem visited) with
-       | Some (a, b) -> Int.abs a + Int.abs b
+       | Some pos ->
+         let a, b = Coordinate.xy pos in
+         Int.abs a + Int.abs b
        | None ->
          let visited =
            Set.union visited (Set.of_list (module Coordinate) visited_positions)
          in
          aux visited (List.last_exn visited_positions) dir tl)
   in
-  aux (Set.singleton (module Coordinate) (0, 0)) (0, 0) (0, -1) lines |> Int.to_string
+  aux
+    (Set.singleton (module Coordinate) Coordinate.origin)
+    Coordinate.origin
+    (Coordinate.make ~x:0 ~y:(-1))
+    lines
+  |> Int.to_string
 ;;

@@ -30,7 +30,7 @@ module City = struct
     Map.exists antennas ~f:(fun s ->
       Set.exists s ~f:(fun antenna ->
         let offset = Coordinate.sub antenna pos in
-        (not (Coordinate.equal offset (0, 0)))
+        (not (Coordinate.equal offset Coordinate.origin))
         && Set.mem s (Coordinate.add antenna offset)))
   ;;
 
@@ -45,7 +45,7 @@ module City = struct
           then true
           else aux (Coordinate.add pos offset)
         in
-        if Coordinate.equal offset (0, 0) then false else aux pos))
+        if Coordinate.equal offset Coordinate.origin then false else aux pos))
   ;;
 end
 

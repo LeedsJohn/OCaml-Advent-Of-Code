@@ -9,7 +9,7 @@ let of_string s num =
   |> List.map ~f:(fun line ->
     let x, line = Parse.take_next_int line in
     let y, _ = Parse.take_next_int line in
-    x, y)
+    Coordinate.make ~x ~y)
   |> Set.of_list (module Coordinate)
 ;;
 
@@ -17,7 +17,7 @@ let bfs corrupted =
   let rec aux corrupted level steps =
     if Set.length level = 0
     then -1
-    else if Set.mem level (dim, dim)
+    else if Set.mem level (Coordinate.make ~x:dim ~y:dim)
     then steps
     else (
       let neighbors =
@@ -25,12 +25,16 @@ let bfs corrupted =
         |> List.map ~f:Coordinate.neighbors
         |> List.join
         |> Set.of_list (module Coordinate)
-        |> Set.filter ~f:(fun (x, y) ->
-          Int.min x y >= 0 && Int.max x y <= dim && not (Set.mem corrupted (x, y)))
+        |> Set.filter ~f:(fun coord ->
+          let x, y = Coordinate.xy coord in
+          Int.min x y >= 0 && Int.max x y <= dim && not (Set.mem corrupted coord))
       in
       aux (Set.union corrupted neighbors) neighbors (steps + 1))
   in
-  aux (Set.add corrupted (0, 0)) (Set.singleton (module Coordinate) (0, 0)) 0
+  aux
+    (Set.add corrupted Coordinate.origin)
+    (Set.singleton (module Coordinate) Coordinate.origin)
+    0
 ;;
 
 let has_path s num_bytes =

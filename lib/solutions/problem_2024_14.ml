@@ -7,13 +7,15 @@ let max_y = 103
 let of_string s =
   let parse_line line =
     match Parse.line_numbers line with
-    | [ x; y; dx; dy ] -> (x, y), (dx, dy)
+    | [ x; y; dx; dy ] -> Coordinate.make ~x ~y, Coordinate.make ~x:dx ~y:dy
     | _ -> raise_s [%message "malformed line"]
   in
   String.split_lines s |> List.map ~f:parse_line
 ;;
 
-let step_robot ((x, y), (dx, dy)) =
+let step_robot (pos, change) =
+  let x, y = Coordinate.xy pos in
+  let dx, dy = Coordinate.xy change in
   let step a da m =
     let a = a + da in
     let a = if a < 0 then a + m else a in
@@ -21,7 +23,7 @@ let step_robot ((x, y), (dx, dy)) =
   in
   let x = step x dx max_x in
   let y = step y dy max_y in
-  (x, y), (dx, dy)
+  Coordinate.make ~x ~y, Coordinate.make ~x:dx ~y:dy
 ;;
 
 let step_robots robots = List.map robots ~f:step_robot
@@ -29,15 +31,18 @@ let step_robots robots = List.map robots ~f:step_robot
 let contains_tree robo =
   let robots = List.map robo ~f:fst |> Set.of_list (module Coordinate) in
   (* solution 1 : look for a horizontal line *)
-  Set.exists robots ~f:(fun (x, y) ->
-    List.for_all (List.range 1 10) ~f:(fun dx -> Set.mem robots (x + dx, y)))
+  Set.exists robots ~f:(fun coord ->
+    let x, y = Coordinate.xy coord in
+    List.for_all (List.range 1 10) ~f:(fun dx ->
+      Set.mem robots (Coordinate.make ~x:(x + dx) ~y)))
 ;;
 
 (* solution 2 : look for a layout where all robots are on unique points *)
 (* Set.length robots = List.length robo *)
 
 let count_quadrant robots min_x max_x min_y max_y =
-  List.count robots ~f:(fun ((x, y), _) ->
+  List.count robots ~f:(fun (coord, _) ->
+    let x, y = Coordinate.xy coord in
     Int.between x ~low:min_x ~high:max_x && Int.between y ~low:min_y ~high:max_y)
 ;;
 

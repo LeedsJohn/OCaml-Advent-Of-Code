@@ -6,7 +6,7 @@ let of_string s =
   let start, end_ =
     Map.fold
       board
-      ~init:((0, 0), (0, 0))
+      ~init:(Coordinate.origin, Coordinate.origin)
       ~f:(fun ~key:pos ~data:c (start, end_) ->
         match c with
         | 'S' -> pos, end_
@@ -48,7 +48,8 @@ let neighbors_in_radius pos radius =
   List.range (-radius) (radius + 1)
   |> List.map ~f:(fun dx ->
     let remaining_time = radius - Int.abs dx in
-    List.range (-remaining_time) (remaining_time + 1) |> List.map ~f:(fun dy -> dx, dy))
+    List.range (-remaining_time) (remaining_time + 1)
+    |> List.map ~f:(fun dy -> Coordinate.make ~x:dx ~y:dy))
   |> List.join
   |> List.map ~f:(fun offset -> Coordinate.add pos offset)
 ;;
@@ -81,9 +82,9 @@ let part2 s =
 ;;
 
 let%expect_test "neighbors in radius" =
-  print_s [%sexp (neighbors_in_radius (0, 0) 1 : Coordinate.t list)];
+  print_s [%sexp (neighbors_in_radius Coordinate.origin 1 : Coordinate.t list)];
   [%expect {| ((-1 0) (0 -1) (0 0) (0 1) (1 0)) |}];
-  print_s [%sexp (neighbors_in_radius (0, 0) 2 : Coordinate.t list)];
+  print_s [%sexp (neighbors_in_radius Coordinate.origin 2 : Coordinate.t list)];
   [%expect
     {|
     ((-2 0) (-1 -1) (-1 0) (-1 1) (0 -2) (0 -1) (0 0) (0 1) (0 2) (1 -1)

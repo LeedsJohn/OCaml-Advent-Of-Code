@@ -5,7 +5,7 @@ open! Helpers
 let of_string s =
   let get_coord_from_line line =
     match Parse.line_numbers line with
-    | [ a; b ] -> a, b
+    | [ a; b ] -> Coordinate.make ~x:a ~y:b
     | _ -> raise_s [%message "not two numbers on line"]
   in
   let rec aux acc lines =
@@ -24,8 +24,9 @@ let of_string s =
 
 let of_string2 s =
   of_string s
-  |> List.map ~f:(fun (a, b, (goal_x, goal_y)) ->
-    a, b, (goal_x + 10000000000000, goal_y + 10000000000000))
+  |> List.map ~f:(fun (a, b, coord) ->
+    let goal_x, goal_y = Coordinate.xy coord in
+    a, b, Coordinate.make ~x:(goal_x + 10000000000000) ~y:(goal_y + 10000000000000))
 ;;
 
 (* ax + by = e
@@ -36,13 +37,16 @@ let of_string2 s =
 
    bcy - ady = ce - af
    y = (ce - af)/(bc - ad) *)
-let solve ((a, c) as i) ((b, d) as j) ((e, f) as goal) max_moves =
+let solve i j goal max_moves =
+  let a, c = Coordinate.xy i in
+  let b, d = Coordinate.xy j in
+  let e, f = Coordinate.xy goal in
   let y = ((c * e) - (a * f)) / ((b * c) - (a * d)) in
   let x =
-    let t, _ = Coordinate.sub goal (Coordinate.scale j y) in
+    let t = Coordinate.sub goal (Coordinate.scale j y) |> Coordinate.x in
     t / a
   in
-  let added = Coordinate.(add (scale i x) (scale j y)) in
+  let added = Coordinate.add (Coordinate.scale i x) (Coordinate.scale j y) in
   if Coordinate.equal added goal && y < max_moves && x < max_moves
   then (x * 3) + y
   else Int.max_value
@@ -69,7 +73,14 @@ let part2 s =
 ;;
 
 let%expect_test "stuff" =
-  print_s [%sexp (solve (1, 1) (2, 1) (11, 10) 100 : int)];
+  print_s
+    [%sexp
+      (solve
+         (Coordinate.make ~x:1 ~y:1)
+         (Coordinate.make ~x:2 ~y:1)
+         (Coordinate.make ~x:11 ~y:10)
+         100
+       : int)];
   [%expect {| 28 |}];
   ()
 ;;

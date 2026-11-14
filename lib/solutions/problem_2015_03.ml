@@ -1,18 +1,22 @@
 open! Core
 open! Helpers
 
-let get_dir = function
-  | '>' -> 1, 0
-  | '<' -> -1, 0
-  | 'v' -> 0, 1
-  | '^' -> 0, -1
-  | c -> raise_s [%message "wtf" (c : char)]
+let get_dir c =
+  let x, y =
+    match c with
+    | '>' -> 1, 0
+    | '<' -> -1, 0
+    | 'v' -> 0, 1
+    | '^' -> 0, -1
+    | c -> raise_s [%message "wtf" (c : char)]
+  in
+  Coordinate.make ~x ~y
 ;;
 
 let part1 s =
   String.fold
     s
-    ~init:((0, 0), Set.singleton (module Coordinate) (0, 0))
+    ~init:(Coordinate.origin, Set.singleton (module Coordinate) Coordinate.origin)
     ~f:(fun (pos, s) dir ->
       let dir = get_dir dir in
       let new_pos = Coordinate.add pos dir in
@@ -26,7 +30,10 @@ let part2 s =
   let _, _, res =
     String.foldi
       s
-      ~init:((0, 0), (0, 0), Set.singleton (module Coordinate) (0, 0))
+      ~init:
+        ( Coordinate.origin
+        , Coordinate.origin
+        , Set.singleton (module Coordinate) Coordinate.origin )
       ~f:(fun i (pos1, pos2, s) dir ->
         let dir = get_dir dir in
         if i % 2 = 0

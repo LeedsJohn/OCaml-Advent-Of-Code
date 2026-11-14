@@ -1,7 +1,8 @@
 open! Core
 open! Helpers
 
-let offset_to_dir = function
+let offset_to_dir coord =
+  match Coordinate.x coord, Coordinate.y coord with
   | 0, -1 -> '^'
   | 0, 1 -> 'v'
   | -1, 0 -> '<'

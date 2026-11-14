@@ -15,10 +15,12 @@ module Game = struct
 
   let get { board; default; _ } pos = Map.find board pos |> Option.value ~default
 
-  let get_alg_index t (x, y) =
+  let get_alg_index t coord =
+    let x, y = Coordinate.xy coord in
     List.map
       (List.range (y - 1) (y + 2))
-      ~f:(fun y -> List.map (List.range (x - 1) (x + 2)) ~f:(fun x -> get t (x, y)))
+      ~f:(fun y ->
+        List.map (List.range (x - 1) (x + 2)) ~f:(fun x -> get t (Coordinate.make ~x ~y)))
     |> List.join
     |> String.of_list
     |> bin_to_dec
@@ -30,7 +32,9 @@ module Game = struct
     List.iter
       (List.range min_y (max_y + 1))
       ~f:(fun y ->
-        List.map (List.range min_x (max_x + 1)) ~f:(fun x -> get t (x, y))
+        List.map
+          (List.range min_x (max_x + 1))
+          ~f:(fun x -> get t (Coordinate.make ~x ~y))
         |> String.of_list
         |> print_endline)
   ;;
@@ -42,6 +46,7 @@ module Game = struct
       List.cartesian_product
         (List.range (min_x - 2) (max_x + 2))
         (List.range (min_y - 2) (max_y + 2))
+      |> List.map ~f:(fun (x, y) -> Coordinate.make ~x ~y)
       |> List.fold
            ~init:(Map.empty (module Coordinate))
            ~f:(fun acc pos ->

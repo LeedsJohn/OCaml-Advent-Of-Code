@@ -7,7 +7,7 @@ let parse s =
     | line :: tl ->
       let num1, s = Parse.take_int line in
       let num2, _ = Parse.take_int (String.drop_prefix s 1) in
-      get_order_rules (Set.add acc (num1, num2)) tl
+      get_order_rules (Set.add acc (Coordinate.make ~x:num1 ~y:num2)) tl
     | _ -> raise_s [%message "john"]
   in
   let order_rules, lines =
@@ -25,7 +25,8 @@ let valid_update order_rules update =
     | hd :: tl -> get_pairs (acc @ List.map tl ~f:(fun n -> hd, n)) tl
   in
   let pairs = get_pairs [] update in
-  List.for_all pairs ~f:(fun (first, second) -> not (Set.mem order_rules (second, first)))
+  List.for_all pairs ~f:(fun (first, second) ->
+    not (Set.mem order_rules (Coordinate.make ~x:second ~y:first)))
 ;;
 
 let fix_update order_rules update =
@@ -38,7 +39,9 @@ let fix_update order_rules update =
     else (
       let next =
         Set.find_exn update ~f:(fun n1 ->
-          Set.exists update ~f:(fun n2 -> Set.mem order_rules (n2, n1)) |> not)
+          Set.exists update ~f:(fun n2 ->
+            Set.mem order_rules (Coordinate.make ~x:n2 ~y:n1))
+          |> not)
       in
       aux (next :: acc) (Set.remove update next))
   in

@@ -1,5 +1,6 @@
 open! Core
 
+(* CR: update this module *)
 type 'a t = 'a Map.M(Coordinate).t [@@deriving equal, compare, sexp_of]
 
 val of_string : string -> char t

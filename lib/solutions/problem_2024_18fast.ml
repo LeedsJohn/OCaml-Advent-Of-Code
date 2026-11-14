@@ -18,33 +18,37 @@ let of_string s =
 ;;
 
 let bfs board max_wall =
-  let q = Queue.singleton ((0, 0), 0) in
+  let q = Queue.singleton (Coordinate.origin, 0) in
   let res = ref 0 in
   while !res = 0 do
     let pos, steps = Queue.dequeue_exn q in
-    List.iter (Coordinate.neighbors pos) ~f:(fun (x, y) ->
+    List.iter (Coordinate.neighbors pos) ~f:(fun coord ->
+      let x, y = Coordinate.xy coord in
       if
         Int.min x y >= 0
         && Int.max x y <= dim
         && (board.(y).(x) = -1 || board.(y).(x) > max_wall)
       then (
         board.(y).(x) <- -2;
-        if Coordinate.equal (x, y) (dim, dim) then res := steps + 1;
-        Queue.enqueue q ((x, y), steps + 1)))
+        if Coordinate.equal (Coordinate.make ~x ~y) (Coordinate.make ~x:dim ~y:dim)
+        then res := steps + 1;
+        Queue.enqueue q (Coordinate.make ~x ~y, steps + 1)))
   done;
   !res
 ;;
 
-let mark_reachable board ((x, y) as start_pos) =
+let mark_reachable board start_pos =
+  let x, y = Coordinate.xy start_pos in
   let q = Queue.singleton start_pos in
   board.(y).(x) <- -2;
   while not (Queue.is_empty q) do
     let pos = Queue.dequeue_exn q in
-    List.iter (Coordinate.neighbors pos) ~f:(fun (x, y) ->
+    List.iter (Coordinate.neighbors pos) ~f:(fun pos ->
+      let x, y = Coordinate.xy pos in
       if Int.min x y >= 0 && Int.max x y <= dim && board.(y).(x) = -1
       then (
         board.(y).(x) <- -2;
-        Queue.enqueue q (x, y)))
+        Queue.enqueue q (Coordinate.make ~x ~y)))
   done
 ;;
 
@@ -56,15 +60,17 @@ let part1 s =
 let part2 s =
   let board, coords = of_string s in
   let i = ref (Array.length coords - 1) in
-  mark_reachable board (0, 0);
+  mark_reachable board Coordinate.origin;
   while board.(dim).(dim) <> -2 do
     let x, y = coords.(!i) in
     board.(y).(x) <- -1;
     if
       List.exists
-        (Coordinate.neighbors (x, y))
-        ~f:(fun (x, y) -> Int.min x y >= 0 && Int.max x y <= dim && board.(y).(x) = -2)
-    then mark_reachable board (x, y);
+        (Coordinate.neighbors (Coordinate.make ~x ~y))
+        ~f:(fun coord ->
+          let x, y = Coordinate.xy coord in
+          Int.min x y >= 0 && Int.max x y <= dim && board.(y).(x) = -2)
+    then mark_reachable board (Coordinate.make ~x ~y);
     i := !i - 1
   done;
   let x, y = coords.(!i + 1) in

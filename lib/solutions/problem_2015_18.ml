@@ -16,10 +16,8 @@ let step t =
 
 let step2 t =
   let t = step t in
-  List.fold
-    [ 0, 0; 0, 99; 99, 0; 99, 99 ]
-    ~init:t
-    ~f:(fun acc key -> Map.set acc ~key ~data:true)
+  List.map [ 0, 0; 0, 99; 99, 0; 99, 99 ] ~f:(fun (x, y) -> Coordinate.make ~x ~y)
+  |> List.fold ~init:t ~f:(fun acc key -> Map.set acc ~key ~data:true)
 ;;
 
 let make_step_n_times step_fn =

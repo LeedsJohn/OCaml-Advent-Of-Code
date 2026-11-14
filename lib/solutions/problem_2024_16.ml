@@ -4,12 +4,12 @@ open! Helpers
 let of_string s = Board.of_string s
 
 let end_pos board =
-  Map.fold board ~init:(0, 0) ~f:(fun ~key ~data acc ->
+  Map.fold board ~init:Coordinate.origin ~f:(fun ~key ~data acc ->
     if Char.(data = 'E') then key else acc)
 ;;
 
 let start_pos board =
-  Map.fold board ~init:(0, 0) ~f:(fun ~key ~data acc ->
+  Map.fold board ~init:Coordinate.origin ~f:(fun ~key ~data acc ->
     if Char.(data = 'S') then key else acc)
 ;;
 
@@ -64,7 +64,10 @@ let part1 s =
   let board = of_string s in
   let sp, ep = start_pos board, end_pos board in
   let distances =
-    djikstra ~end_positions:(Set.singleton (module Coordinate) ep) board [ sp, (1, 0) ]
+    djikstra
+      ~end_positions:(Set.singleton (module Coordinate) ep)
+      board
+      [ sp, Coordinate.make ~x:1 ~y:0 ]
   in
   List.find_map_exn Coordinate.offsets ~f:(fun dir -> Hashtbl.find distances (ep, dir))
   |> Int.to_string
@@ -73,11 +76,13 @@ let part1 s =
 let part2 s =
   let board = of_string s in
   let sp, ep = start_pos board, end_pos board in
-  let distances_from_beginning = djikstra board [ sp, (1, 0) ] in
+  let distances_from_beginning = djikstra board [ sp, Coordinate.make ~x:1 ~y:0 ] in
   let distances_from_end =
     djikstra board ((List.map Coordinate.offsets) ~f:(fun dir -> ep, dir))
   in
-  let best_score = Hashtbl.find_exn distances_from_end (sp, (-1, 0)) in
+  let best_score =
+    Hashtbl.find_exn distances_from_end (sp, Coordinate.make ~x:(-1) ~y:0)
+  in
   Map.counti board ~f:(fun ~key:pos ~data:c ->
     if Char.(c = '#')
     then false

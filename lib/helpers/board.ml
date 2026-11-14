@@ -7,16 +7,20 @@ let of_string s =
     (String.split_lines s)
     ~init:(Map.empty (module Coordinate))
     ~f:(fun y acc line ->
-      String.foldi line ~init:acc ~f:(fun x acc c -> Map.add_exn acc ~key:(x, y) ~data:c))
+      String.foldi line ~init:acc ~f:(fun x acc c ->
+        let key = Coordinate.make ~x ~y in
+        Map.add_exn acc ~key ~data:c))
 ;;
 
 let min_coordinates t =
-  Map.fold t ~init:(Int.max_value, Int.max_value) ~f:(fun ~key:(x', y') ~data:_ (x, y) ->
+  Map.fold t ~init:(Int.max_value, Int.max_value) ~f:(fun ~key ~data:_ (x, y) ->
+    let x', y' = Coordinate.xy key in
     Int.min x x', Int.min y y')
 ;;
 
 let max_coordinates t =
-  Map.fold t ~init:(Int.min_value, Int.min_value) ~f:(fun ~key:(x', y') ~data:_ (x, y) ->
+  Map.fold t ~init:(Int.min_value, Int.min_value) ~f:(fun ~key ~data:_ (x, y) ->
+    let x', y' = Coordinate.xy key in
     Int.max x x', Int.max y y')
 ;;
 
@@ -32,7 +36,7 @@ let to_string t =
           (List.range min_x (max_x + 1))
           ~init:[]
           ~f:(fun acc x ->
-            let c = Map.find t (x, y) |> Option.value ~default:' ' in
+            let c = Map.find t (Coordinate.make ~x ~y) |> Option.value ~default:' ' in
             c :: acc)
       in
       (List.rev line |> String.of_list) :: acc)

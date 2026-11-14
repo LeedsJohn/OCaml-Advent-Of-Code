@@ -77,25 +77,27 @@ end = struct
     let dead_spots, max_x, max_y, empty_pos =
       List.drop lines 2
       |> List.fold
-           ~init:(Set.empty (module Coordinate), 0, 0, (0, 0))
+           ~init:(Set.empty (module Coordinate), 0, 0, Coordinate.origin)
            ~f:(fun (dead_spots, max_x, max_y, empty_pos) line ->
              match Parse.line_numbers line with
              | [ x; y; _size; used; _avail; _use_percent ] ->
                let max_x = Int.max max_x x in
                let max_y = Int.max max_y y in
                (match used >= 100 with
-                | true -> Set.add dead_spots (x, y), max_x, max_y, empty_pos
+                | true ->
+                  Set.add dead_spots (Coordinate.make ~x ~y), max_x, max_y, empty_pos
                 | false ->
                   (match used = 0 with
-                   | true -> dead_spots, max_x, max_y, (x, y)
+                   | true -> dead_spots, max_x, max_y, Coordinate.make ~x ~y
                    | false -> dead_spots, max_x, max_y, empty_pos))
              | _ -> failwith "bad number of numbers in line")
     in
-    let (state : State.t) = { valuable_pos = max_x, 0; empty_pos } in
+    let (state : State.t) = { valuable_pos = Coordinate.make ~x:max_x ~y:0; empty_pos } in
     { max_x; max_y; dead_spots; state }
   ;;
 
-  let valid_pos { max_x; max_y; dead_spots; state = _ } ((x, y) as pos) =
+  let valid_pos { max_x; max_y; dead_spots; state = _ } pos =
+    let x, y = Coordinate.xy pos in
     Int.between x ~low:0 ~high:max_x
     && Int.between y ~low:0 ~high:max_y
     && not (Set.mem dead_spots pos)
@@ -145,7 +147,7 @@ end = struct
   ;;
 end
 
-let goal_pos = 0, 0
+let goal_pos = Coordinate.origin
 
 let h board =
   let empty_pos = Board.empty_pos board in
@@ -259,7 +261,7 @@ end = struct
          ~f:(fun acc line ->
            match Parse.line_numbers line with
            | [ x; y; size; used; _avail; _use_percent ] ->
-             Map.add_exn acc ~key:(x, y) ~data:(Node2.create ~size ~used)
+             Map.add_exn acc ~key:(Coordinate.make ~x ~y) ~data:(Node2.create ~size ~used)
            | _ -> failwith "bad number of numbers in line")
   ;;
 
@@ -445,9 +447,10 @@ let _old_part2 s =
   let coords = Board2.coordinates board in
   let max_x =
     Set.to_list coords
-    |> List.map ~f:(fun (x, _y) -> x)
+    |> List.map ~f:Coordinate.x
     |> List.max_elt ~compare:[%compare: Int.t]
     |> Option.value_exn
   in
-  solve2 ~board ~from:(max_x, 0) ~to_:(0, 0) |> Int.to_string
+  solve2 ~board ~from:(Coordinate.make ~x:max_x ~y:0) ~to_:Coordinate.origin
+  |> Int.to_string
 ;;

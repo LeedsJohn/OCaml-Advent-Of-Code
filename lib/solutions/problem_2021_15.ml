@@ -30,15 +30,21 @@ module Funny_board = struct
   let of_string s copies =
     let board = Board.of_string s |> Map.map ~f:Char.get_digit_exn in
     let dim = (Board.max_coordinates board |> fst) + 1 in
-    { board; dim; goal_pos = (dim * copies) - 1, (dim * copies) - 1 }
+    { board
+    ; dim
+    ; goal_pos = Coordinate.make ~x:((dim * copies) - 1) ~y:((dim * copies) - 1)
+    }
   ;;
 
-  let find { board; dim; goal_pos = x2, y2 } (x, y) =
+  let find { board; dim; goal_pos } coord =
+    let x, y = Coordinate.xy coord in
+    let x2, y2 = Coordinate.xy goal_pos in
     if Int.min x y < 0 || x > x2 || y > y2
     then None
     else (
       let dist = (x / dim) + (y / dim) in
-      Some (wrap_val dist (Map.find_exn board (x % dim, y % dim))))
+      Some
+        (wrap_val dist (Map.find_exn board (Coordinate.make ~x:(x % dim) ~y:(y % dim)))))
   ;;
 end
 
@@ -67,7 +73,7 @@ let dijkstra (board : Funny_board.t) =
         in
         aux pq))
   in
-  aux (Pq.singleton { weight = 0; coord = 0, 0 })
+  aux (Pq.singleton { weight = 0; coord = Coordinate.origin })
 ;;
 
 let part1 s =

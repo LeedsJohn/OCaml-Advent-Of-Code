@@ -1,12 +1,16 @@
 open! Core
+open Helpers
 
 module Board = struct
   type t =
-    { board : bool Helpers.Board.t
+    { board : bool Board.t
     ; max_x : int
     }
 
-  let get { board; max_x } (x, y) = Map.find_exn board (x % (max_x + 1), y)
+  let get { board; max_x } coord =
+    let x, y = Coordinate.xy coord in
+    Map.find_exn board (Coordinate.make ~x:(x % (max_x + 1)) ~y)
+  ;;
 
   let of_string s =
     let board = Helpers.Board.of_string s in
@@ -21,7 +25,7 @@ let traverse (board : Board.t) ~dx ~dy =
   let rec aux (x, y) acc =
     if y > max_y
     then acc
-    else aux (x + dx, y + dy) (acc + Bool.to_int (Board.get board (x, y)))
+    else aux (x + dx, y + dy) (acc + Bool.to_int (Board.get board (Coordinate.make ~x ~y)))
   in
   aux (0, 0) 0
 ;;

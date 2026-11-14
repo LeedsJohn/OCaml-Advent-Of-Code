@@ -1,7 +1,8 @@
 open! Core
 open! Helpers
 
-let is_wall (x, y) num =
+let is_wall coord num =
+  let x, y = Coordinate.xy coord in
   if Int.min x y < 0
   then true
   else (
@@ -53,7 +54,8 @@ let bfs2 start_pos num_steps num =
 
 let _print_board max_x max_y num =
   List.map (List.range 0 max_y) ~f:(fun y ->
-    List.map (List.range 0 max_x) ~f:(fun x -> if is_wall (x, y) num then '#' else '.')
+    List.map (List.range 0 max_x) ~f:(fun x ->
+      if is_wall (Coordinate.make ~x ~y) num then '#' else '.')
     |> String.of_list)
   |> String.concat ~sep:"\n"
   |> print_endline
@@ -61,10 +63,10 @@ let _print_board max_x max_y num =
 
 let part1 s =
   let num = Int.of_string s in
-  bfs (1, 1) (31, 39) num |> Int.to_string
+  bfs (Coordinate.make ~x:1 ~y:1) (Coordinate.make ~x:31 ~y:39) num |> Int.to_string
 ;;
 
 let part2 s =
   let num = Int.of_string s in
-  bfs2 (1, 1) 50 num |> Int.to_string
+  bfs2 (Coordinate.make ~x:1 ~y:1) 50 num |> Int.to_string
 ;;

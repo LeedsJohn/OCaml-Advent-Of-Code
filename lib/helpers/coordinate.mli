@@ -1,14 +1,16 @@
 open! Core
 
-module T : sig
-  type t = int * int [@@deriving compare, sexp, equal, hash]
-end
-
-include module type of T
-
-type coordinate = t
+type t [@@deriving compare, equal, hash, sexp]
 
 include Comparator.S with type t := t
+
+val x : t -> int
+val y : t -> int
+val xy : t -> int * int
+val make : x:int -> y:int -> t
+
+(** (0, 0) *)
+val origin : t
 
 val distance : t -> t -> int
 val add : t -> t -> t

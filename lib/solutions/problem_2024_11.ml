@@ -23,14 +23,14 @@ let stones_after_blinks nums blinks =
     if blinks = 0
     then 1
     else (
-      match Hashtbl.find cache (n, blinks) with
+      match Hashtbl.find cache (Coordinate.make ~x:n ~y:blinks) with
       | Some res -> res
       | None ->
         let res =
           get_next_stones n
           |> List.sum (module Int) ~f:(fun n -> count_for_stone n (blinks - 1))
         in
-        Hashtbl.add_exn cache ~key:(n, blinks) ~data:res;
+        Hashtbl.add_exn cache ~key:(Coordinate.make ~x:n ~y:blinks) ~data:res;
         res)
   in
   List.sum (module Int) nums ~f:(fun n -> count_for_stone n blinks)

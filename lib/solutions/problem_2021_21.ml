@@ -91,11 +91,15 @@ let rec stuff p1_pos p1_score p2_pos p2_score turn =
         p1_pos, p1_score, new_pos, p2_score + new_pos
     in
     let res =
-      Map.fold score_counts ~init:(0, 0) ~f:(fun ~key:moves ~data:count acc ->
+      Map.fold score_counts ~init:Coordinate.origin ~f:(fun ~key:moves ~data:count acc ->
         let p1_pos', p1_score', p2_pos', p2_score' = get_new_stuff moves in
         Coordinate.add
           acc
-          (Coordinate.scale (stuff p1_pos' p1_score' p2_pos' p2_score' (not turn)) count))
+          (Coordinate.scale
+             (let x, y = stuff p1_pos' p1_score' p2_pos' p2_score' (not turn) in
+              Coordinate.make ~x ~y)
+             count))
+      |> Coordinate.xy
     in
     Hashtbl.add_exn memo ~key:k ~data:res;
     res)

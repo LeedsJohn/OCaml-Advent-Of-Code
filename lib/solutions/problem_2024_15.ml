@@ -15,7 +15,7 @@ module Warehouse = struct
   let of_string s =
     let board = Board.of_string s in
     let pos =
-      Map.fold board ~init:(0, 0) ~f:(fun ~key:pos ~data:c acc ->
+      Map.fold board ~init:Coordinate.origin ~f:(fun ~key:pos ~data:c acc ->
         if Char.equal c '@' then pos else acc)
     in
     let board =
@@ -71,7 +71,8 @@ module Warehouse = struct
     Map.sumi
       (module Int)
       board
-      ~f:(fun ~key:(x, y) ~data:til ->
+      ~f:(fun ~key ~data:til ->
+        let x, y = Coordinate.xy key in
         match til with
         | Box -> (100 * y) + x
         | _ -> 0)
@@ -110,15 +111,16 @@ module Warehouse2 = struct
     let walls, boxes, pos =
       List.foldi
         s
-        ~init:(Set.empty (module Coordinate), Map.empty (module Coordinate), (0, 0))
+        ~init:
+          (Set.empty (module Coordinate), Map.empty (module Coordinate), Coordinate.origin)
         ~f:(fun y acc line ->
           List.foldi line ~init:acc ~f:(fun x (walls, boxes, pos) c ->
             match c with
-            | '#' -> Set.add walls (x, y), boxes, pos
-            | '@' -> walls, boxes, (x, y)
+            | '#' -> Set.add walls (Coordinate.make ~x ~y), boxes, pos
+            | '@' -> walls, boxes, Coordinate.make ~x ~y
             | '[' ->
-              let l = x, y in
-              let r = x + 1, y in
+              let l = Coordinate.make ~x ~y in
+              let r = Coordinate.make ~x:(x + 1) ~y in
               walls, Map.add_exn boxes ~key:l ~data:r |> Map.add_exn ~key:r ~data:l, pos
             | '.' | ']' -> walls, boxes, pos
             | c -> raise_s [%message "invalid character for warehouse" (c : char)]))
@@ -135,7 +137,7 @@ module Warehouse2 = struct
           Map.add_exn acc ~key:pos ~data:'#')
     in
     Map.fold boxes ~init:board ~f:(fun ~key:pos ~data:neighbor acc ->
-      if Coordinate.(equal (add pos (1, 0)) neighbor)
+      if Coordinate.(equal (add pos (Coordinate.make ~x:1 ~y:0)) neighbor)
       then Map.add_exn acc ~key:pos ~data:'[' |> Map.add_exn ~key:neighbor ~data:']'
       else acc)
     |> Board.to_string
@@ -205,7 +207,9 @@ module Warehouse2 = struct
     Map.sumi
       (module Int)
       boxes
-      ~f:(fun ~key:(x1, y1) ~data:(x2, y2) ->
+      ~f:(fun ~key ~data ->
+        let x1, y1 = Coordinate.xy key in
+        let x2, y2 = Coordinate.xy data in
         let x, y = if x1 < x2 then x1, y1 else x2, y2 in
         (100 * y) + x)
     / 2
@@ -221,6 +225,7 @@ let get_dir_list s =
     | '>' -> 1, 0
     | '<' -> -1, 0
     | _ -> raise_s [%message "bad move character"])
+  |> List.map ~f:(fun (x, y) -> Coordinate.make ~x ~y)
 ;;
 
 let get_warehouse_and_dir_list s of_string =

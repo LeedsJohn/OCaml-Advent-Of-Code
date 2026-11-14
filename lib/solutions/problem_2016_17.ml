@@ -13,9 +13,13 @@ module Room = struct
     let hash = Md5.digest_string (!passcode ^ path) |> Md5.to_hex in
     let offsets =
       List.filteri
-        [ 'U', (0, -1); 'D', (0, 1); 'L', (-1, 0); 'R', (1, 0) ]
+        [ 'U', Coordinate.make ~x:0 ~y:(-1)
+        ; 'D', Coordinate.make ~x:0 ~y:1
+        ; 'L', Coordinate.make ~x:(-1) ~y:0
+        ; 'R', Coordinate.make ~x:1 ~y:0
+        ]
         ~f:(fun i (_, offset) ->
-          let nx, ny = Coordinate.add pos offset in
+          let nx, ny = Coordinate.add pos offset |> Coordinate.xy in
           Int.between nx ~low:0 ~high:3
           && Int.between ny ~low:0 ~high:3
           && Char.between (String.get hash i) ~low:'b' ~high:'f')
@@ -55,12 +59,12 @@ end
 
 let part1 s =
   Room.passcode := s;
-  let (start : Room.t) = { pos = 0, 0; path = "" } in
-  Room.bfs start (3, 3)
+  let (start : Room.t) = { pos = Coordinate.origin; path = "" } in
+  Room.bfs start (Coordinate.make ~x:3 ~y:3)
 ;;
 
 let part2 s =
   Room.passcode := s;
-  let (start : Room.t) = { pos = 0, 0; path = "" } in
-  Room.bfs2 start (3, 3) |> Int.to_string
+  let (start : Room.t) = { pos = Coordinate.origin; path = "" } in
+  Room.bfs2 start (Coordinate.make ~x:3 ~y:3) |> Int.to_string
 ;;

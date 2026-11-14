@@ -39,6 +39,7 @@ module Display = struct
 
   let rect t length width : t =
     List.cartesian_product (List.range 0 length) (List.range 0 width)
+    |> List.map ~f:(fun (x, y) -> Coordinate.make ~x ~y)
     |> List.fold ~init:t ~f:(fun acc pos -> set acc pos true)
   ;;
 
@@ -46,14 +47,18 @@ module Display = struct
     Set.map
       (module Coordinate)
       t
-      ~f:(fun ((x, y) as pos) -> if y <> move_y then pos else (x + n) % length, y)
+      ~f:(fun pos ->
+        let x, y = Coordinate.xy pos in
+        if y <> move_y then pos else Coordinate.make ~x:((x + n) % length) ~y)
   ;;
 
   let rotate_col (t : t) move_x n : t =
     Set.map
       (module Coordinate)
       t
-      ~f:(fun ((x, y) as pos) -> if x <> move_x then pos else x, (y + n) % height)
+      ~f:(fun pos ->
+        let x, y = Coordinate.xy pos in
+        if x <> move_x then pos else Coordinate.make ~x ~y:((y + n) % height))
   ;;
 
   let apply_instruction t = function
@@ -66,6 +71,7 @@ module Display = struct
 
   let print t =
     List.cartesian_product (List.range 0 length) (List.range 0 height)
+    |> List.map ~f:(fun (x, y) -> Coordinate.make ~x ~y)
     |> List.fold
          ~init:(Map.empty (module Coordinate))
          ~f:(fun acc pos ->

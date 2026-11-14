@@ -1,12 +1,16 @@
 open! Core
 open! Helpers
 
-let char_to_dir = function
-  | 'U' -> 0, -1
-  | 'D' -> 0, 1
-  | 'L' -> -1, 0
-  | 'R' -> 1, 0
-  | c -> raise_s [%message "bad char character" (c : char)]
+let char_to_dir c =
+  let x, y =
+    match c with
+    | 'U' -> 0, -1
+    | 'D' -> 0, 1
+    | 'L' -> -1, 0
+    | 'R' -> 1, 0
+    | c -> raise_s [%message "bad char character" (c : char)]
+  in
+  Coordinate.make ~x ~y
 ;;
 
 let of_string s ~board_string =
@@ -35,7 +39,7 @@ let part1 s =
   in
   List.fold
     lines
-    ~init:("", (1, 1))
+    ~init:("", Coordinate.make ~x:1 ~y:1)
     ~f:(fun (res, pos) line ->
       let pos = apply_moves board pos line in
       res ^ String.of_char (Map.find_exn board pos), pos)
@@ -55,7 +59,7 @@ let part2 s =
   in
   List.fold
     lines
-    ~init:("", (0, 2))
+    ~init:("", Coordinate.make ~x:0 ~y:2)
     ~f:(fun (res, pos) line ->
       let pos = apply_moves board pos line in
       res ^ String.of_char (Map.find_exn board pos), pos)

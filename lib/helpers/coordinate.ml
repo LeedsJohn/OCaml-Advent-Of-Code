@@ -1,18 +1,17 @@
 open! Core
 
 module T = struct
-  module U = struct
-    type t = int * int [@@deriving compare, sexp, equal, hash]
-  end
-
-  include U
-  include Comparator.Make (U)
+  type t = int * int [@@deriving compare, sexp, equal, hash]
 end
 
+include Comparator.Make (T)
 include T
 
-type coordinate = t
-
+let make ~x ~y = x, y
+let x (x, _y) = x
+let y (_x, y) = y
+let xy = Fn.id
+let origin = 0, 0
 let distance (x1, y1) (x2, y2) = Int.abs (x1 - x2) + Int.abs (y1 - y2)
 let neighbors (x, y) = [ x + 1, y; x - 1, y; x, y + 1; x, y - 1 ]
 let rotate_right (x, y) = -y, x
